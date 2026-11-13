@@ -1,0 +1,153 @@
+import java.util.*;
+abstract class Vehicle {
+    private String regNo;
+    Vehicle(String regNo) {
+        this.regNo = regNo;
+    }
+    public String getRegNo() {
+        return regNo;
+    }
+    abstract double calculateFee(int minutes);
+    abstract String getType();
+}
+class Car extends Vehicle {
+    Car(String regNo) {
+        super(regNo);
+    }
+    double calculateFee(int minutes) {
+        return fee(minutes, 40);
+    }
+    String getType() {
+        return "Car";
+    }
+    private double fee(int minutes, int rate) {
+        if (minutes <= 0) return 0;
+        return Math.ceil(minutes / 60.0) * rate;
+    }
+}
+class Bike extends Vehicle {
+    Bike(String regNo) {
+        super(regNo);
+    }
+    double calculateFee(int minutes) {
+        if (minutes <= 0) return 0;
+        return Math.ceil(minutes / 60.0) * 10;
+    }
+    String getType() {
+        return "Bike";
+    }
+}
+class ElectricCar extends Vehicle {
+    ElectricCar(String regNo) {
+        super(regNo);
+    }
+    double calculateFee(int minutes) {
+        if (minutes <= 0) return 0;
+        return Math.ceil(minutes / 60.0) * 30;
+    }
+    String getType() {
+        return "Electric Car";
+    }
+}
+class ParkingTicket {
+    private Vehicle vehicle;
+    private int slotNumber;
+    ParkingTicket(Vehicle vehicle, int slotNumber) {
+        this.vehicle = vehicle;
+        this.slotNumber = slotNumber;
+    }
+    public Vehicle getVehicle() {
+        return vehicle;
+    }
+    public int getSlotNumber() {
+        return slotNumber;
+    }
+}
+class ParkingLot {
+    private ParkingTicket[] slots;
+    private double collection = 0;
+    ParkingLot(int capacity) {
+        slots = new ParkingTicket[capacity];
+    }
+    public void parkVehicle(Vehicle vehicle) {
+        if (vehicle == null) {
+            System.out.println("Invalid vehicle");
+            return;
+        }
+        for (ParkingTicket ticket : slots) {
+            if (ticket != null &&
+                ticket.getVehicle().getRegNo().equalsIgnoreCase(vehicle.getRegNo())) {
+                System.out.println("Duplicate registration: " + vehicle.getRegNo());
+                return;
+            }
+        }
+        for (int i = 0; i < slots.length; i++) {
+            if (slots[i] == null) {
+                slots[i] = new ParkingTicket(vehicle, i + 1);
+                System.out.println(vehicle.getType() + " " +
+                    vehicle.getRegNo() + " parked in slot " + (i + 1));
+                return;
+            }
+        }
+        System.out.println("Parking full: " + vehicle.getRegNo());
+    }
+    public void releaseVehicle(String regNo, int minutes) {
+        if (minutes < 0) {
+            System.out.println("Invalid parking duration");
+            return;
+        }
+        for (int i = 0; i < slots.length; i++) {
+            if (slots[i] != null &&
+                slots[i].getVehicle().getRegNo().equalsIgnoreCase(regNo)) {
+                Vehicle vehicle = slots[i].getVehicle();
+                double fee = vehicle.calculateFee(minutes);
+                collection += fee;
+                System.out.println(vehicle.getRegNo() +
+                    " exited from slot " + (i + 1));
+                System.out.println("Parking Fee: Rs." + fee);
+                slots[i] = null;
+                return;
+            }
+        }
+        System.out.println("Vehicle not found: " + regNo);
+    }
+    public void releaseBySlot(int slotNumber, int minutes) {
+        if (slotNumber < 1 || slotNumber > slots.length) {
+            System.out.println("Invalid slot number");
+            return;
+        }
+        if (slots[slotNumber - 1] == null) {
+            System.out.println("Slot is empty");
+            return;
+        }
+        String regNo = slots[slotNumber - 1].getVehicle().getRegNo();
+        releaseVehicle(regNo, minutes);
+    }
+    public void showCollection() {
+        System.out.println("Total Daily Collection: Rs." + collection);
+    }
+}
+public class Main {
+    public static void main(String[] args) {
+        ParkingLot lot = new ParkingLot(3);
+        System.out.println("---- VEHICLE ENTRY ----");
+        lot.parkVehicle(new Car("TN01AA1111"));
+        lot.parkVehicle(new Bike("TN02BB2222"));
+        lot.parkVehicle(new ElectricCar("TN03CC3333"));
+        lot.parkVehicle(new Car("TN04DD4444"));
+        lot.parkVehicle(new Bike("TN01AA1111"));
+        System.out.println("\n---- VEHICLE EXIT ----");
+        lot.releaseVehicle("TN01AA1111", 120);
+        lot.releaseVehicle("TN02BB2222", 0);
+        lot.releaseVehicle("TN03CC3333", 90);
+        lot.releaseBySlot(5, 60);
+        String unknownType = "Bus";
+        if (!unknownType.equals("Car") &&
+            !unknownType.equals("Bike") &&
+            !unknownType.equals("ElectricCar")) {
+            System.out.println("Unknown vehicle type: " + unknownType);
+        }
+        System.out.println("\n---- DAILY COLLECTION ----");
+        lot.showCollection();
+    }
+}
