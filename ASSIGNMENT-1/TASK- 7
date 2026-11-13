@@ -1,0 +1,83 @@
+import java.util.Objects;
+class Vehicle {
+    final String regNo;
+    String owner;
+    Vehicle(String regNo, String owner) {
+        this.regNo = regNo;
+        this.owner = owner;
+    }
+    double calculateFee() {
+        return 20.0;
+    }
+    @Override
+    public String toString() {
+        return "Registration: " + regNo +
+               ", Owner: " + owner;
+    }
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (!(obj instanceof Vehicle))
+            return false;
+        Vehicle v = (Vehicle) obj;
+        return regNo.equalsIgnoreCase(v.regNo);
+    }
+    @Override
+    public int hashCode() {
+        return regNo.toUpperCase().hashCode();
+    }
+    final void displayMessage() {
+        System.out.println("Welcome to Parking Management");
+    }
+}
+class Car extends Vehicle {
+    Car(String regNo, String owner) {
+        super(regNo, owner);
+    }
+    @Override
+    double calculateFee() {
+        return 40.0;
+    }
+}
+class Bike extends Vehicle {
+    Bike(String regNo, String owner) {
+        super(regNo, owner);
+    }
+    @Override
+    double calculateFee() {
+        return 10.0;
+    }
+}
+class ElectricCar extends Vehicle {
+    ElectricCar(String regNo, String owner) {
+        super(regNo, owner);
+    }
+
+    @Override
+    double calculateFee() {
+        return 30.0;
+    }
+}
+public class Main {
+    public static void main(String[] args) {
+        Vehicle v1 = new Car("TN01AB1234", "Ravi");
+        Vehicle v2 = new Bike("TN02CD5678", "Kumar");
+        Vehicle v3 = new ElectricCar("TN03EF9999", "Arun");
+        v1.displayMessage();
+        System.out.println("\n--- VEHICLE DETAILS ---");
+        System.out.println(v1);
+        System.out.println("Car Fee: Rs." + v1.calculateFee());
+        System.out.println("\n" + v2);
+        System.out.println("Bike Fee: Rs." + v2.calculateFee());
+        System.out.println("\n" + v3);
+        System.out.println("Electric Car Fee: Rs." +
+                           v3.calculateFee());
+        Vehicle v4 = new Car("TN01AB1234", "Ramesh");
+        System.out.println("\n--- EQUALITY CHECK ---");
+        System.out.println("Are vehicles equal? " +
+                           v1.equals(v4));
+        System.out.println("Same hash code? " +
+                           (v1.hashCode() == v4.hashCode()));
+    }
+}
