@@ -1,0 +1,67 @@
+import java.util.Scanner;
+public class Main {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        String[][] parking = {
+            new String[3],
+            new String[2],
+            new String[4]
+        };
+        long[][] entryTime = {
+            new long[3],
+            new long[2],
+            new long[4]
+        };
+        System.out.print("Enter Floor Number (1-3): ");
+        int floor = sc.nextInt() - 1;
+        System.out.print("Enter Slot Number: ");
+        int slot = sc.nextInt() - 1;
+        sc.nextLine();
+        if (floor < 0 || floor >= parking.length ||
+            slot < 0 || slot >= parking[floor].length) {
+            System.out.println("Invalid floor or slot!");
+            sc.close();
+            return;
+        }
+        if (parking[floor][slot] != null) {
+            System.out.println("Slot already occupied!");
+            sc.close();
+            return;
+        }
+        System.out.print("Enter Vehicle Number: ");
+        String vehicleNo = sc.nextLine();
+        System.out.print("Enter Entry Time (minutes): ");
+        long time = sc.nextLong();
+        System.out.print("Enter Duration (minutes): ");
+        long duration = sc.nextLong();
+        if (time < 0 || duration <= 0) {
+            System.out.println("Invalid time or duration!");
+            sc.close();
+            return;
+        }
+        parking[floor][slot] = vehicleNo;
+        entryTime[floor][slot] = time;
+        double hours = duration / 60.0;
+        double fee = hours * 20.0;
+        System.out.println("\n----- PARKING DETAILS -----");
+        System.out.println("Floor Number: " + (floor + 1));
+        System.out.println("Slot Number: " + (slot + 1));
+        System.out.println("Vehicle Number: " + vehicleNo);
+        System.out.println("Entry Time: " + time + " minutes");
+        System.out.println("Duration: " + duration + " minutes");
+        System.out.println("Parking Fee: Rs." + fee);
+        System.out.println("\n----- PARKING STATUS -----");
+        for (int i = 0; i < parking.length; i++) {
+            System.out.println("Floor " + (i + 1));
+            for (int j = 0; j < parking[i].length; j++) {
+                if (parking[i][j] == null) {
+                    System.out.println("Slot " + (j + 1) + ": Available");
+                } else {
+                    System.out.println("Slot " + (j + 1) +
+                                       ": " + parking[i][j]);
+                }
+            }
+        }
+        sc.close();
+    }
+}
