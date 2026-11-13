@@ -1,0 +1,86 @@
+class Vehicle {
+    String regNo;
+    String type;
+    Vehicle() {
+        this("UNKNOWN", "Car");
+    }
+    Vehicle(String regNo, String type) {
+        this.regNo = regNo;
+        this.type = type;
+    }
+}
+class ParkingTicket {
+    int ticketNo;
+    Vehicle vehicle;
+    int slotNo;
+    ParkingTicket() {
+        this(1000, new Vehicle(), 0);
+    }
+    ParkingTicket(int ticketNo, Vehicle vehicle, int slotNo) {
+        this.ticketNo = ticketNo;
+        this.vehicle = vehicle;
+        this.slotNo = slotNo;
+    }
+    ParkingTicket(ParkingTicket t) {
+        this(t.ticketNo, t.vehicle, t.slotNo);
+    }
+    void display() {
+        System.out.println("Ticket Number: " + ticketNo);
+        System.out.println("Vehicle Number: " + vehicle.regNo);
+        System.out.println("Vehicle Type: " + vehicle.type);
+        System.out.println("Slot Number: " + slotNo);
+    }
+}
+class ParkingSlot {
+    int slotNo;
+    Vehicle vehicle;
+    ParkingSlot() {
+        this(0);
+    }
+    ParkingSlot(int slotNo) {
+        this.slotNo = slotNo;
+        this.vehicle = null;
+    }
+    boolean isAvailable() {
+        return vehicle == null;
+    }
+}
+class ParkingLot {
+    ParkingSlot[] slots;
+    int ticketCounter = 1000;
+    ParkingLot(int capacity) {
+        slots = new ParkingSlot[capacity];
+        for (int i = 0; i < capacity; i++) {
+            slots[i] = new ParkingSlot(i + 1);
+        }
+    }
+    void parkVehicle(String regNo, String type) {
+        for (ParkingSlot slot : slots) {
+            if (slot.isAvailable()) {
+                Vehicle v = new Vehicle(regNo, type);
+                ParkingTicket t =
+                    new ParkingTicket(++ticketCounter, v, slot.slotNo);
+                slot.vehicle = v;
+                System.out.println("Vehicle parked successfully!");
+                t.display();
+                return;
+            }
+        }
+        System.out.println("Parking lot is full!");
+    }
+}
+public class Main {
+    public static void main(String[] args) {
+        ParkingLot lot = new ParkingLot(3);
+        lot.parkVehicle("TN01AB1234", "Car");
+        System.out.println();
+        lot.parkVehicle("TN02CD5678", "Bike");
+        System.out.println();
+        Vehicle v = new Vehicle("TN03EF9999", "Car");
+        ParkingTicket original =
+            new ParkingTicket(1003, v, 3);
+        ParkingTicket copy = new ParkingTicket(original);
+        System.out.println("Copied Ticket Details:");
+        copy.display();
+    }
+}
