@@ -1,0 +1,78 @@
+class Vehicle {
+    String regNo;
+    String owner;
+    Vehicle(String regNo, String owner) {
+        this.regNo = regNo;
+        this.owner = owner;
+        System.out.println("Vehicle Constructor");
+    }
+    void display() {
+        System.out.println("Registration Number: " + regNo);
+        System.out.println("Owner: " + owner);
+    }
+    double calculateFee() {
+        return 20.0;
+    }
+}
+class Car extends Vehicle {
+    int seats;
+    Car(String regNo, String owner, int seats) {
+        super(regNo, owner);
+        this.seats = seats;
+        System.out.println("Car Constructor");
+    }
+
+    @Override
+    double calculateFee() {
+        return 40.0;
+    }
+}
+class Bike extends Vehicle {
+    int engineCC;
+    Bike(String regNo, String owner, int engineCC) {
+        super(regNo, owner);
+        this.engineCC = engineCC;
+        System.out.println("Bike Constructor");
+    }
+    @Override
+    double calculateFee() {
+        return 10.0;
+    }
+}
+class ElectricCar extends Car {
+    double batteryCapacity;
+    ElectricCar(String regNo, String owner,
+                int seats, double batteryCapacity) {
+        super(regNo, owner, seats);
+        this.batteryCapacity = batteryCapacity;
+        System.out.println("ElectricCar Constructor");
+    }
+    @Override
+    double calculateFee() {
+        return 30.0;
+    }
+    void displayDetails() {
+        super.display();
+        System.out.println("Seats: " + seats);
+        System.out.println("Battery Capacity: " +
+                           batteryCapacity + " kWh");
+        System.out.println("Parking Fee: Rs." +
+                           calculateFee());
+    }
+}
+public class Main {
+    public static void main(String[] args) {
+        System.out.println("Creating Electric Car:");
+        ElectricCar e = new ElectricCar(
+            "TN01AB1234", "Ravi", 5, 75.5
+        );
+        System.out.println("\n--- ELECTRIC CAR DETAILS ---");
+        e.displayDetails();
+        System.out.println("\n--- BIKE DETAILS ---");
+        Bike b = new Bike("TN02CD5678", "Kumar", 150);
+        b.display();
+        System.out.println("Engine CC: " + b.engineCC);
+        System.out.println("Parking Fee: Rs." +
+                           b.calculateFee());
+    }
+}
