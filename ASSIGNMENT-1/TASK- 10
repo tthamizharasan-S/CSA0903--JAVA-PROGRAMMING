@@ -1,0 +1,77 @@
+class Vehicle {
+    private String regNo;
+    private String owner;
+    private int duration;
+
+
+    public Vehicle(String regNo, String owner, int duration) {
+        setRegNo(regNo);
+        setOwner(owner);
+        setDuration(duration);
+    }
+    public String getRegNo() {
+        return regNo;
+    }
+    public void setRegNo(String regNo) {
+        if (regNo == null || regNo.trim().isEmpty()) {
+            throw new IllegalArgumentException("Invalid registration number");
+        }
+        this.regNo = regNo;
+    }
+    public String getOwner() {
+        return owner;
+    }
+    public void setOwner(String owner) {
+        if (owner == null || owner.trim().isEmpty()) {
+            throw new IllegalArgumentException("Invalid owner name");
+        }
+        this.owner = owner;
+    }
+    public int getDuration() {
+        return duration;
+    }
+    public void setDuration(int duration) {
+        if (duration < 0) {
+            throw new IllegalArgumentException("Duration cannot be negative");
+        }
+        this.duration = duration;
+    }
+    public void display() {
+        System.out.println("Registration: " + regNo);
+        System.out.println("Owner: " + owner);
+        System.out.println("Duration: " + duration + " hours");
+    }
+}
+class ParkingSlot {
+    private Integer slotNumber;
+    public ParkingSlot(Integer slotNumber) {
+        setSlotNumber(slotNumber);
+    }
+    public Integer getSlotNumber() {
+        return slotNumber;
+    }
+    public void setSlotNumber(Integer slotNumber) {
+        if (slotNumber == null || slotNumber <= 0) {
+            throw new IllegalArgumentException("Invalid slot number");
+        }
+        this.slotNumber = slotNumber;
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Vehicle v = new Vehicle("TN01AB1234", "Arun", 3);
+        v.display();
+        ParkingSlot slot = new ParkingSlot(10);
+        System.out.println("Slot Number: " + slot.getSlotNumber());
+        v.setDuration(5);
+        System.out.println("Updated Duration: " + v.getDuration());
+        Integer a = 100;
+        int b = a;
+        System.out.println("Autoboxing Value: " + a);
+        System.out.println("Unboxing Value: " + b);
+        Integer x = 200;
+        Integer y = 200;
+        System.out.println("Slot Comparison: " + x.equals(y));
+    }
+}
