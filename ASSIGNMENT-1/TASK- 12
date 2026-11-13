@@ -1,0 +1,217 @@
+import java.time.LocalTime;
+interface PricingRule {
+    double calculateFee(int minutes, LocalTime entryTime);
+}
+class HourlyPricingRule implements PricingRule {
+    private double rate;
+
+    HourlyPricingRule(double rate) {
+        this.rate = rate;
+    }
+    public double calculateFee(int minutes, LocalTime entryTime) {
+        if (minutes <= 0) return 0;
+        return Math.ceil(minutes / 60.0) * rate;
+    }
+}
+class FlatPricingRule implements PricingRule {
+    private double amount;
+    FlatPricingRule(double amount) {
+        this.amount = amount;
+    }
+    public double calculateFee(int minutes, LocalTime entryTime) {
+        return amount;
+    }
+}
+class DeliveryVanPricingRule implements PricingRule {
+    public double calculateFee(int minutes, LocalTime entryTime) {
+        if (minutes <= 0) return 0;
+        int start = entryTime.getHour() * 60 + entryTime.getMinute();
+        int end = start + minutes;
+        int overlap = Math.max(0,
+            Math.min(end, 17 * 60) - Math.max(start, 9 * 60));
+        int normalMinutes = minutes - overlap;
+        double normalFee =
+            Math.ceil(normalMinutes / 60.0) * 40;
+        double specialFee =
+            Math.ceil(overlap / 60.0) * 80;
+        return normalFee + specialFee;
+    }
+}
+abstract class Vehicle {
+    private String regNo;
+    private PricingRule pricingRule;
+    Vehicle(String regNo, PricingRule pricingRule) {
+        this.regNo = regNo;
+        this.pricingRule = pricingRule;
+    }
+    public String getRegNo() {
+        return regNo;
+    }
+    public double calculateFee(int minutes, LocalTime entryTime) {
+        return pricingRule.calculateFee(minutes, entryTime);
+    }
+    abstract String getType();
+}
+class Car extends Vehicle {
+    Car(String regNo) {
+        super(regNo, new HourlyPricingRule(40));
+    }
+    String getType() {
+        return "Car";
+    }
+}
+class Bike extends Vehicle {
+    Bike(String regNo) {
+        super(regNo, new HourlyPricingRule(10));
+    }
+    String getType() {
+        return "Bike";
+    }
+}
+class ElectricCar extends Vehicle {
+    ElectricCar(String regNo) {
+        super(regNo, new HourlyPricingRule(30));
+    }
+    String getType() {
+        return "Electric Car";
+    }
+}
+class EBike extends Vehicle {
+    EBike(String regNo) {
+        super(regNo, new FlatPricingRule(60));
+    }
+    String getType() {
+        return "E-Bike";
+    }
+}
+class DeliveryVan extends Vehicle {
+    DeliveryVan(String regNo) {
+        super(regNo, new DeliveryVanPricingRule());
+    }
+    String getType() {
+        return "Delivery Van";
+    }
+}
+interface Pass {
+    double getFee();
+}
+class OneDayPass implements Pass {
+    public double getFee() {
+        return 100;
+    }
+}
+class ParkingTicket {
+    Vehicle vehicle;
+    int floor;
+    int slot;
+    Pass pass;
+    LocalTime entryTime;
+    ParkingTicket(Vehicle vehicle, int floor, int slot,
+                  Pass pass, LocalTime entryTime) {
+        this.vehicle = vehicle;
+        this.floor = floor;
+        this.slot = slot;
+        this.pass = pass;
+        this.entryTime = entryTime;
+    }
+}
+class ParkingLot {
+    private ParkingTicket[][] floors;
+    private double collection = 0;
+    ParkingLot(int[] slotsPerFloor) {
+        floors = new ParkingTicket[slotsPerFloor.length][];
+
+        for (int i = 0; i < slotsPerFloor.length; i++) {
+            floors[i] = new ParkingTicket[slotsPerFloor[i]];
+        }
+    }
+    public void parkVehicle(Vehicle vehicle, Pass pass,
+                            LocalTime entryTime) {
+        if (vehicle == null) {
+            System.out.println("Unknown vehicle type");
+            return;
+        }
+        for (ParkingTicket[] floor : floors) {
+            for (ParkingTicket ticket : floor) {
+                if (ticket != null &&
+                    ticket.vehicle.getRegNo().equalsIgnoreCase(
+                        vehicle.getRegNo())) {
+                    System.out.println("Duplicate registration");
+                    return;
+                }
+            }
+        }
+        for (int f = 0; f < floors.length; f++) {
+            for (int s = 0; s < floors[f].length; s++) {
+                if (floors[f][s] == null) {
+                    floors[f][s] = new ParkingTicket(
+                        vehicle, f + 1, s + 1, pass, entryTime);
+                    System.out.println(vehicle.getType() + " " +
+                        vehicle.getRegNo() + " parked at Floor " +
+                        (f + 1) + ", Slot " + (s + 1));
+                    if (pass != null) {
+                        collection += pass.getFee();
+                        System.out.println("One-day pass: Rs." +
+                            pass.getFee());
+                    }
+                    return;
+                }
+            }
+        }
+        System.out.println("Parking full");
+    }
+    public void exitVehicle(String regNo, int minutes) {
+        if (minutes < 0) {
+            System.out.println("Invalid duration");
+            return;
+        }
+        for (int f = 0; f < floors.length; f++) {
+            for (int s = 0; s < floors[f].length; s++) {
+                ParkingTicket ticket = floors[f][s];
+
+                if (ticket != null &&
+                    ticket.vehicle.getRegNo().equalsIgnoreCase(regNo)) {
+
+                    double fee = 0;
+
+                    if (ticket.pass == null) {
+                        fee = ticket.vehicle.calculateFee(
+                            minutes, ticket.entryTime);
+                        collection += fee;
+                    }
+                    System.out.println(regNo +
+                        " exit fee: Rs." + fee);
+
+                    floors[f][s] = null;
+                    return;
+                }
+            }
+        }
+        System.out.println("Vehicle not found");
+    }
+    public void showCollection() {
+        System.out.println("Total Collection: Rs." + collection);
+    }
+}
+public class Main {
+    public static void main(String[] args) {
+        int[] slots = {2, 3, 1, 2, 2};
+        ParkingLot lot = new ParkingLot(slots);
+        System.out.println("---- VEHICLE ENTRY ----");
+        lot.parkVehicle(new Car("TN01AA1111"),
+            null, LocalTime.of(10, 0));
+        lot.parkVehicle(new EBike("TN02BB2222"),
+            null, LocalTime.of(10, 0));
+        lot.parkVehicle(new DeliveryVan("TN03CC3333"),
+            null, LocalTime.of(10, 0));
+        lot.parkVehicle(new Car("TN04DD4444"),
+            new OneDayPass(), LocalTime.of(11, 0));
+        System.out.println("\n---- VEHICLE EXIT ----");
+        lot.exitVehicle("TN01AA1111", 120);
+        lot.exitVehicle("TN02BB2222", 120);
+        lot.exitVehicle("TN03CC3333", 120);
+        lot.exitVehicle("TN04DD4444", 300);
+        System.out.println("\n---- DAILY COLLECTION ----");
+        lot.showCollection();
+    }
+}
