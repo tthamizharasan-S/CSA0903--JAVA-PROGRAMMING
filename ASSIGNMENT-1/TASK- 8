@@ -1,0 +1,84 @@
+import java.time.LocalTime;
+interface Payable {
+    double calculateFee(int minutes);
+}
+class Vehicle implements Payable {
+    String regNo;
+    String owner;
+    Vehicle(String regNo, String owner) {
+        this.regNo = regNo;
+        this.owner = owner;
+    }
+    double calculateFee(double hours) {
+        return hours * 20;
+    }
+    public double calculateFee(LocalTime in, LocalTime out) {
+        long minutes = java.time.Duration.between(in, out).toMinutes();
+        if (minutes < 0) {
+            minutes += 24 * 60;
+        }
+        return calculateFee((int) minutes);
+    }
+    @Override
+    public double calculateFee(int minutes) {
+        return Math.ceil(minutes / 60.0) * 20;
+    }
+    @Override
+    public String toString() {
+        return regNo + " - " + owner;
+    }
+}
+class Car extends Vehicle {
+    Car(String regNo, String owner) {
+        super(regNo, owner);
+    }
+    @Override
+    public double calculateFee(int minutes) {
+        return Math.ceil(minutes / 60.0) * 40;
+    }
+}
+class Bike extends Vehicle {
+    Bike(String regNo, String owner) {
+        super(regNo, owner);
+    }
+    @Override
+    public double calculateFee(int minutes) {
+        return Math.ceil(minutes / 60.0) * 10;
+    }
+}
+class ElectricCar extends Vehicle {
+    ElectricCar(String regNo, String owner) {
+        super(regNo, owner);
+    }
+    @Override
+    public double calculateFee(int minutes) {
+        return Math.ceil(minutes / 60.0) * 30;
+    }
+}
+public class Main {
+    public static void main(String[] args) {
+        Vehicle[] vehicles = {
+            new Car("TN01AB1234", "Ravi"),
+            new Bike("TN02CD5678", "Kumar"),
+            new ElectricCar("TN03EF9999", "Arun")
+        };
+        System.out.println("PARKING FEE DETAILS");
+        for (Vehicle v : vehicles) {
+            System.out.println("\n" + v);
+            System.out.println("Parking Fee: Rs." +
+                               v.calculateFee(120));
+        }
+        Vehicle v = new Vehicle("TN04GH1111", "Raj");
+        System.out.println("\nOVERLOADED METHODS");
+        System.out.println("Fee by hours: Rs." +
+                           v.calculateFee(2.0));
+        System.out.println("Fee by time: Rs." +
+                           v.calculateFee(
+                               LocalTime.of(9, 0),
+                               LocalTime.of(11, 0)
+                           ));
+        Vehicle v1 = new Car("TN01AB1234", "Ravi");
+        System.out.println("\nEquality Check: " +
+                           vehicles[0].equals(v1));
+    }
+}
