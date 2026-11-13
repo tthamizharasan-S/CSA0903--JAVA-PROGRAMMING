@@ -1,0 +1,70 @@
+class Vehicle {
+    String regNo;
+    String type;
+    Vehicle(String regNo, String type) {
+        this.regNo = regNo;
+        this.type = type;
+    }
+}
+class ParkingTicket {
+    static int ticketCounter = 1000;
+    int ticketNo;
+    Vehicle vehicle;
+    static {
+        System.out.println("Parking System Initialized");
+    }
+    ParkingTicket(Vehicle vehicle) {
+        this.ticketNo = ++ticketCounter;
+        this.vehicle = vehicle;
+    }
+    static int getTotalTickets() {
+        return ticketCounter - 1000;
+    }
+    void display() {
+        System.out.println("Ticket Number: " + ticketNo);
+        System.out.println("Vehicle Number: " + vehicle.regNo);
+        System.out.println("Vehicle Type: " + vehicle.type);
+    }
+}
+class ParkingFacility {
+    String gateName;
+    int occupancy = 0;
+    ParkingFacility(String gateName) {
+        this.gateName = gateName;
+    }
+    ParkingTicket parkVehicle(Vehicle v) {
+        ParkingTicket ticket = new ParkingTicket(v);
+        occupancy++;
+        return ticket;
+    
+    void releaseVehicle(ParkingTicket ticket) {
+        occupancy--;
+        System.out.println("Vehicle released from " + gateName);
+        System.out.println("Ticket Number: " + ticket.ticketNo);
+    }
+}
+public class Main {
+    public static void main(String[] args) {
+        ParkingFacility north = new ParkingFacility("North Gate");
+        ParkingFacility south = new ParkingFacility("South Gate");
+        Vehicle v1 = new Vehicle("TN01AB1234", "Car");
+        Vehicle v2 = new Vehicle("TN02CD5678", "Bike");
+        ParkingTicket t1 = north.parkVehicle(v1);
+        ParkingTicket t2 = south.parkVehicle(v2);
+        System.out.println("\n--- PARKING TICKETS ---");
+        t1.display();
+        System.out.println();
+        t2.display();
+        System.out.println("\nTotal Tickets: " +
+                           ParkingTicket.getTotalTickets());
+        System.out.println("\n--- VEHICLE RELEASE ---");
+        north.releaseVehicle(t1);
+        t1 = null;
+        v1 = null;
+        System.gc();
+        System.out.println("North Gate Occupancy: " +
+                           north.occupancy);
+        System.out.println("South Gate Occupancy: " +
+                           south.occupancy);
+    }
+}
