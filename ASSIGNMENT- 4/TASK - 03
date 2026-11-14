@@ -1,0 +1,169 @@
+import java.util.*;
+public class Main {
+    static Scanner sc = new Scanner(System.in);
+    static String[] categories = {
+        "All Categories",
+        "Computer Science",
+        "Mathematics",
+        "Physics",
+        "Literature"
+    };
+    static String[] books = {
+        "Java Programming",
+        "Python Programming",
+        "Data Structures",
+        "Database Management",
+        "Artificial Intelligence",
+        "Computer Networks",
+        "Operating Systems"
+    };
+    static ArrayList<String> results = new ArrayList<>();
+    static int currentPage = 0;
+    static void displayScreen() {
+        System.out.println("\n================================");
+        System.out.println("       CAMPUS LIBRARY SEARCH");
+        System.out.println("================================");
+        System.out.println("1. Search Book");
+        System.out.println("2. Previous");
+        System.out.println("3. Next");
+        System.out.println("4. Reserve");
+        System.out.println("5. Exit");
+        System.out.println("================================");
+    }
+    static void searchBook() {
+        System.out.print("Enter Book Name: ");
+        String keyword = sc.nextLine().trim();
+        if (keyword.isEmpty()) {
+            System.out.println("Status: Enter a book name!");
+            return;
+        }
+        System.out.println("\nAvailable Categories:");
+        for (int i = 0; i < categories.length; i++) {
+            System.out.println((i + 1) + ". " + categories[i]);
+        }
+        System.out.print("Select Category: ");
+        int choice;
+        try {
+            choice = Integer.parseInt(sc.nextLine());
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid category!");
+            return;
+        }
+        if (choice < 1 || choice > categories.length) {
+            System.out.println("Invalid category!");
+            return;
+        }
+        String category = categories[choice - 1];
+        results.clear();
+        for (String book : books) {
+            if (book.toLowerCase().contains(keyword.toLowerCase())) {
+                results.add(book);
+            }
+        }
+        System.out.println("\n========== SEARCH RESULTS ==========");
+        System.out.println("Keyword: " + keyword);
+        System.out.println("Category: " + category);
+        if (results.isEmpty()) {
+            System.out.println("No books found!");
+        } else {
+            currentPage = 0;
+            displayResults();
+        }
+        System.out.println("Status: Search completed.");
+    }
+    static void displayResults() {
+        if (results.isEmpty()) {
+            System.out.println("No results available!");
+            return;
+        }
+        System.out.println("\nPage: " + (currentPage + 1));
+        int start = currentPage * 3;
+        int end = Math.min(start + 3, results.size());
+        for (int i = start; i < end; i++) {
+            System.out.println((i + 1) + ". " + results.get(i));
+        }
+    }
+    static void previousPage() {
+        if (currentPage > 0) {
+            currentPage--;
+            displayResults();
+            System.out.println("Status: Previous page displayed.");
+        } else {
+            System.out.println("Status: Already in first page.");
+        }
+    }
+    static void nextPage() {
+        if (results.isEmpty()) {
+            System.out.println("Status: Search for books first.");
+            return;
+        }
+        if ((currentPage + 1) * 3 < results.size()) {
+            currentPage++;
+            displayResults();
+            System.out.println("Status: Next page displayed.");
+        } else {
+            System.out.println("Status: No more pages.");
+        }
+    }
+    static void reserveBook() {
+        if (results.isEmpty()) {
+            System.out.println("Status: Search for a book first.");
+            return;
+        }
+
+        System.out.println("\nAvailable Books:");
+        for (int i = 0; i < results.size(); i++) {
+            System.out.println((i + 1) + ". " + results.get(i));
+        }
+        System.out.print("Enter book number to reserve: ");
+        int choice;
+        try {
+            choice = Integer.parseInt(sc.nextLine());
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid book number!");
+            return;
+        }
+        if (choice < 1 || choice > results.size()) {
+            System.out.println("Invalid book selection!");
+            return;
+        }
+        System.out.println("Book Reserved Successfully!");
+        System.out.println("Reserved Book: " + results.get(choice - 1));
+    }
+    public static void main(String[] args) {
+        while (true) {
+            displayScreen();
+            System.out.print("Enter your choice: ");
+            int choice;
+            try {
+                choice = Integer.parseInt(sc.nextLine());
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid choice!");
+                continue;
+            }
+            switch (choice) {
+
+                case 1:
+                    searchBook();
+                    break;
+                case 2:
+                    previousPage();
+                    break;
+                case 3:
+                    nextPage();
+                    break;
+                case 4:
+                    reserveBook();
+                    break;
+                case 5:
+                    System.out.println(
+                        "Thank You! Library Search Closed.");
+                    sc.close();
+                    return;
+                default:
+                   
+ System.out.println("Invalid choice! Try again.");
+            }
+        }
+    }
+}
