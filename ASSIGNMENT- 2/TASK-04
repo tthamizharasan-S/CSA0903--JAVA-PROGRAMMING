@@ -1,0 +1,92 @@
+import java.util.*;
+public class Main {
+    static volatile int result = 0;
+    static Map<String, Integer> createInventory(
+            Map<String, Integer> map, int size) {
+        for (int i = size; i >= 1; i--) {
+            String code = String.format("MED%05d", i);
+            map.put(code, i * 10);
+        }
+        return map;
+    }
+    static void testMap(String name,
+                        Map<String, Integer> map,
+                        int size) {
+        createInventory(map, size);
+        System.out.println("\n" + name);
+        System.out.println("Number of Medicines: " + size);
+        long start = System.nanoTime();
+        for (int i = 0; i < 100000; i++) {
+            String code = String.format(
+                    "MED%05d", (i % size) + 1);
+            Integer stock = map.get(code);
+            if (stock != null) {
+                result += stock;
+            }
+        }
+        long end = System.nanoTime();
+        System.out.println("100,000 Lookups: "
+                + (end - start) / 1_000_000.0 + " ms");
+        start = System.nanoTime();
+        TreeMap<String, Integer> sortedReport =
+                new TreeMap<>(map);
+        for (Map.Entry<String, Integer> entry :
+                sortedReport.entrySet()) {
+            result += entry.getValue();
+        }
+        end = System.nanoTime();
+        System.out.println("Code Order Report: "
+                + (end - start) / 1_000_000.0 + " ms");
+        System.out.println("Code Order Correct: "
+                + isSorted(sortedReport));
+        start = System.nanoTime();
+        LinkedHashMap<String, Integer> insertionReport =
+                new LinkedHashMap<>(map);
+        for (Map.Entry<String, Integer> entry :
+                insertionReport.entrySet()) {
+            result += entry.getValue();
+        }
+        end = System.nanoTime();
+        System.out.println("Insertion Order Report: "
+                + (end - start) / 1_000_000.0 + " ms");
+        System.out.println("Insertion Order Correct: "
+                + isInsertionOrder(insertionReport, size));
+    }
+    static boolean isSorted(Map<String, Integer> map) {
+        String previous = "";
+        for (String key : map.keySet()) {
+            if (key.compareTo(previous) < 0)
+                return false;
+            previous = key;
+        }
+        return true;
+    }
+    static boolean isInsertionOrder(
+            LinkedHashMap<String, Integer> map, int size) {
+        int expected = size;
+        for (String key : map.keySet()) {
+            String correct =
+                    String.format("MED%05d", expected);
+            if (!key.equals(correct))
+                return false;
+            expected--;
+        }
+        return true;
+    }
+    public static void main(String[] args) {
+        int[] sizes = {100, 10000, 50000};
+        System.out.println("PHARMACY INVENTORY MAP ANALYSIS");
+        System.out.println("================================");
+        for (int size : sizes) {
+            System.out.println("\n\nINVENTORY SIZE: " + size);
+            testMap("HashMap",
+                    new HashMap<String, Integer>(), size);
+            testMap("TreeMap",
+                    new TreeMap<String, Integer>(), size);
+            testMap("LinkedHashMap",
+                    new LinkedHashMap<String, Integer>(), size);
+        }
+        System.out.println("\n\nFinal Result: " + result);
+        System.out.println("Performance Analysis Completed.");
+    }
+}
