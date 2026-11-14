@@ -1,0 +1,198 @@
+import java.util.*;
+import java.io.*;
+public class Main {
+    static class Registration {
+        String id, name, email, event;
+        Registration(String id, String name,
+                     String email, String event) {
+            this.id = id;
+            this.name = name;
+            this.email = email;
+            this.event = event;
+        }
+    }
+    static ArrayList<Registration> registrations =
+        new ArrayList<>();
+   static Scanner sc = new Scanner(System.in);
+    static void registerStudent() {
+        System.out.println("\n--- STUDENT REGISTRATION ---");
+        System.out.print("Enter Student ID: ");
+        String id = sc.nextLine().trim();
+        System.out.print("Enter Student Name: ");
+        String name = sc.nextLine().trim();
+        System.out.print("Enter Email: ");
+        String email = sc.nextLine().trim();
+        System.out.println("Events: Music, Dance, Drama, Sports, Quiz");
+        System.out.print("Enter Event: ");
+        String event = sc.nextLine().trim();
+
+        if (id.isEmpty() || name.isEmpty() ||
+            email.isEmpty() || event.isEmpty()) {
+            System.out.println("Error: All fields are required!");
+            return;
+        }
+        if (!email.matches(
+            "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
+            System.out.println("Error: Invalid email address!");
+            return;
+        }
+        String[] events = {
+            "Music", "Dance", "Drama", "Sports", "Quiz"
+        };
+        boolean validEvent = false;
+        for (String e : events) {
+            if (e.equalsIgnoreCase(event)) {
+                event = e;
+                validEvent = true;
+                break;
+            }
+        }
+        if (!validEvent) {
+            System.out.println("Error: Invalid event!");
+            return;
+        }
+        for (Registration r : registrations) {
+            if (r.id.equalsIgnoreCase(id) &&
+                r.event.equalsIgnoreCase(event)) {
+                System.out.println(
+                    "Duplicate Error: Student already registered!"
+                );
+                return;
+            }
+        }
+        registrations.add(
+            new Registration(id, name, email, event)
+        );
+        System.out.println("Registration Successful!");
+    }
+    static void viewRegistrations() {
+        System.out.println("\n--- ALL REGISTRATIONS ---");
+
+        if (registrations.isEmpty()) {
+            System.out.println("No registrations found.");
+            return;
+        }
+        int pageSize = 3;
+        int page = 0;
+        int totalPages =
+            (registrations.size() + pageSize - 1) / pageSize;
+        while (true) {
+            int start = page * pageSize;
+            int end = Math.min(start + pageSize,
+                               registrations.size());
+            System.out.println("\nPage " + (page + 1) +
+                               " of " + totalPages);
+            System.out.printf("%-12s %-15s %-25s %-12s%n",
+                "Student ID", "Name", "Email", "Event");
+            for (int i = start; i < end; i++) {
+                Registration r = registrations.get(i);
+
+                System.out.printf("%-12s %-15s %-25s %-12s%n",
+                    r.id, r.name, r.email, r.event);
+            }
+            System.out.println("\n1. Next Page");
+            System.out.println("2. Previous Page");
+            System.out.println("3. Back to Menu");
+            System.out.print("Choose: ");
+            int choice = readChoice();
+            if (choice == 1 && page < totalPages - 1) {
+                page++;
+            } else if (choice == 2 && page > 0) {
+                page--;
+            } else if (choice == 3) {
+                break;
+            } else {
+                System.out.println("Invalid choice!");
+            }
+        }
+    }
+    static void filterRegistrations() {
+        System.out.print("\nEnter event to filter: ");
+        String event = sc.nextLine().trim();
+        boolean found = false;
+        System.out.println("\n--- FILTERED REGISTRATIONS ---");
+
+        for (Registration r : registrations) {
+            if (r.event.equalsIgnoreCase(event)) {
+
+                System.out.println(
+                    r.id + " | " + r.name + " | " +
+                    r.email + " | " + r.event
+                );
+
+                found = true;
+            }
+        }
+
+        if (!found) {
+            System.out.println("No matching registrations found.");
+        }
+    }
+    static void exportCSV() {
+        try (PrintWriter out =
+                 new PrintWriter(new FileWriter(
+                     "event_registrations.csv"))) {
+
+            out.println("Student ID,Name,Email,Event");
+            for (Registration r : registrations) {
+                out.println(
+                    csv(r.id) + "," +
+                    csv(r.name) + "," +
+                    csv(r.email) + "," +
+                    csv(r.event)
+                );
+            }
+            System.out.println(
+                "CSV file exported successfully: event_registrations.csv"
+            );
+
+        } catch (IOException e) {
+            System.out.println("CSV export failed: " + e.getMessage());
+        }
+    }
+  static String csv(String value) {
+        return "\"" + value.replace("\"", "\"\"") + "\"";
+    }
+    static int readChoice() {
+        try {
+            return Integer.parseInt(sc.nextLine().trim());
+        } catch (NumberFormatException e) {
+            return -1;
+        }
+    }
+    public static void main(String[] args) {
+        while (true) {
+            System.out.println("\n===== CAMPUS EVENT REGISTRATION =====");
+            System.out.println("1. Register Student");
+            System.out.println("2. View Registrations");
+            System.out.println("3. Filter by Event");
+            System.out.println("4. Export CSV");
+            System.out.println("5. Exit");
+            System.out.print("Enter your choice: ");
+            int choice = readChoice();
+            switch (choice) {
+                case 1:
+                    registerStudent();
+                    break;
+                case 2:
+                    viewRegistrations();
+                    break;
+              case 3:
+                    filterRegistrations();
+                    break;
+                case 4:
+                    exportCSV();
+                    break;
+                case 5:
+                    System.out.println(
+                        "Thank you! Application closed."
+                    );
+                    sc.close();
+                    return;
+
+                default:
+                    System.out.println("Invalid choice!");
+            }
+        }
+    }
+}
