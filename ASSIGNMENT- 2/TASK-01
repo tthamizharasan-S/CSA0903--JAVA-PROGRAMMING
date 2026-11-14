@@ -1,0 +1,126 @@
+public class Main {
+    static volatile int resultLength = 0;
+    static String usingString(String[] fields) {
+        String ticket = "";
+        for (String field : fields) {
+            ticket = ticket + field + " ";
+        }
+        return ticket;
+    }
+    static String usingStringBuilder(String[] fields) {
+        StringBuilder ticket = new StringBuilder();
+        for (String field : fields) {
+            ticket.append(field).append(" ");
+        }
+        return ticket.toString();
+    }
+    static String usingStringBuffer(String[] fields) {
+        StringBuffer ticket = new StringBuffer();
+        for (String field : fields) {
+            ticket.append(field).append(" ");
+        }
+        return ticket.toString();
+    }
+    static void benchmark(String name, int tickets,
+                          String[] fields, int method) {
+        for (int i = 0; i < 3; i++) {
+            build(fields, method);
+        }
+        long totalTime = 0;
+        int repetitions = 5;
+        Runtime runtime = Runtime.getRuntime();
+        System.gc();
+        long memoryBefore =
+                runtime.totalMemory() - runtime.freeMemory();
+        for (int r = 0; r < repetitions; r++) {
+            long start = System.nanoTime();
+            for (int t = 0; t < tickets; t++) {
+                String ticket = build(fields, method);
+                resultLength += ticket.length();
+            }
+            long end = System.nanoTime();
+            totalTime += (end - start);
+        }
+        long memoryAfter =
+                runtime.totalMemory() - runtime.freeMemory();
+        double averageTime =
+                totalTime / (double) repetitions / 1_000_000;
+        System.out.println("\n" + name);
+        System.out.printf("Average Time: %.3f ms%n", averageTime);
+        System.out.println("Estimated Intermediate Objects: "
+                + estimateObjects(fields.length, method, tickets));
+        System.out.println("Memory Before: "
+                + memoryBefore / 1024 + " KB");
+        System.out.println("Memory After: "
+                + memoryAfter / 1024 + " KB");
+        System.out.println("Memory Difference: "
+                + (memoryAfter - memoryBefore) / 1024 + " KB");
+    }
+    static String build(String[] fields, int method) {
+        if (method == 1)
+            return usingString(fields);
+        else if (method == 2)
+            return usingStringBuilder(fields);
+        else
+            return usingStringBuffer(fields);
+    }
+    static long estimateObjects(int fields, int method,
+                                int tickets) {
+        if (method == 1)
+            return (long) tickets * fields * 2;
+        else
+            return (long) tickets * 2;
+    }
+    public static void main(String[] args) {
+        String[] shortFields = {
+            "PNR12345", "Arun", "S1", "B12", "450"
+        };
+        String[] largeFields = new String[50];
+        for (int i = 0; i < 50; i++) {
+            largeFields[i] = "Field" + (i + 1);
+        }
+        String[] mediumFields = new String[20];
+        for (int i = 0; i < 20; i++) {
+            mediumFields[i] = "Data" + (i + 1);
+        }
+        System.out.println("RAILWAY E-TICKET PERFORMANCE ANALYSIS");
+        System.out.println("======================================");
+        System.out.println("\nWORKLOAD 1: SHORT TICKET");
+        for (int method = 1; method <= 3; method++) {
+            benchmark(
+                methodName(method),
+                1,
+                shortFields,
+                method
+            );
+        }
+        System.out.println("\n\nWORKLOAD 2: 10,000 TICKETS");
+        for (int method = 1; method <= 3; method++) {
+            benchmark(
+                methodName(method),
+                10000,
+                largeFields,
+                method
+            );
+        }
+        System.out.println("\n\nWORKLOAD 3: 1,000 MEDIUM TICKETS");
+        for (int method = 1; method <= 3; method++) {
+            benchmark(
+                methodName(method),
+                1000,
+                mediumFields,
+                method
+            );
+        }
+        System.out.println("\n\nFinal Result Length: " + resultLength);
+        System.out.println("\nPerformance comparison completed.");
+    }
+    static String methodName(int method) {
+        if (method == 1)
+            return "String (+ operator)";
+        else if (method == 2)
+            return "StringBuilder";
+        else
+            return "StringBuffer";
+    }
+}
