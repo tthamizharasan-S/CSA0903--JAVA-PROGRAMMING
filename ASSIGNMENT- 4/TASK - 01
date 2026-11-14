@@ -1,0 +1,73 @@
+import java.util.Scanner;
+import java.util.HashMap;
+import java.math.BigDecimal;
+public class Main {
+    static Scanner sc = new Scanner(System.in);
+    static HashMap<String, BigDecimal> payments = new HashMap<>();
+    static void payFee() {
+        System.out.print("Enter Register Number: ");
+       String reg = sc.nextLine().trim();
+        if (reg.isEmpty()) {
+            System.out.println("Invalid Register Number!");
+            return;
+        }
+        try {
+            System.out.print("Enter Fee Amount: ");
+            BigDecimal amount = new BigDecimal(sc.nextLine());
+
+            if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+                System.out.println("Amount must be greater than zero!");
+                return;
+            }
+            payments.put(reg, amount);
+            System.out.println("Payment Successful!");
+            System.out.println("Register Number: " + reg);
+            System.out.println("Amount Paid: Rs. " + amount);
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid amount! Enter numbers only.");
+        }
+    }
+    static void showReceipt() {
+        System.out.print("Enter Register Number: ");
+        String reg = sc.nextLine().trim();
+        if (payments.containsKey(reg)) {
+            System.out.println("\n----- PAYMENT RECEIPT -----");
+            System.out.println("Register Number: " + reg);
+            System.out.println("Amount Paid: Rs. " + payments.get(reg));
+            System.out.println("Payment Status: SUCCESS");
+            System.out.println("---------------------------");
+        } else {
+            System.out.println("No payment record found!");
+        }
+    }
+    static void clearFields() {
+        System.out.println("Fields cleared successfully!");
+    }
+    public static void main(String[] args) {
+        while (true) {
+            System.out.println("\n===== COLLEGE FEE PAYMENT =====");
+            System.out.println("1. Pay Fee");
+            System.out.println("2. Generate Receipt");
+            System.out.println("3. Clear");
+            System.out.println("4. Exit");
+            System.out.print("Enter your choice: ");
+            String choice = sc.nextLine();
+            switch (choice) {
+                case "1":
+                    payFee();
+                    break;
+                case "2":
+                    showReceipt();
+                    break;
+                case "3":
+                    clearFields();
+                    break;
+                case "4":
+                    System.out.println("Thank You!");
+                    return;
+                default:
+                    System.out.println("Invalid Choice!");
+            }
+        }
+    }
+}
