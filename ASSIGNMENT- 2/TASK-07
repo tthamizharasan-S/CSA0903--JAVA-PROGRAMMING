@@ -1,0 +1,95 @@
+public class Main {
+    static volatile long checksum = 0;
+    static String originalTicket(String[] fields) {
+        String ticket = "";
+        for (String field : fields) {
+            ticket = ticket + field + " ";
+        }
+        return ticket;
+    }
+    static String redesignedTicket(
+            StringBuilder builder, String[] fields) {
+        builder.setLength(0);
+        for (String field : fields) {
+            builder.append(field).append(" ");
+        }
+        return builder.toString();
+    }
+    static double testOriginal(
+            String[] fields, int tickets) {
+        long start = System.nanoTime();
+        for (int i = 0; i < tickets; i++) {
+            String ticket = originalTicket(fields);
+            checksum += ticket.length();
+        }
+        long end = System.nanoTime();
+        return (end - start) / 1_000_000.0;
+    }
+    static double testRedesigned(
+            String[] fields, int tickets) {
+        StringBuilder builder = new StringBuilder(2048);
+        long start = System.nanoTime();
+        for (int i = 0; i < tickets; i++) {
+            String ticket = redesignedTicket(builder, fields);
+            checksum += ticket.length();
+        }
+        long end = System.nanoTime();
+        return (end - start) / 1_000_000.0;
+    }
+    public static void main(String[] args) {
+        int tickets = 10000;
+        int fieldCount = 50;
+        String[] fields = new String[fieldCount];
+        for (int i = 0; i < fieldCount; i++) {
+            fields[i] = "Field" + (i + 1);
+        }
+        System.out.println("RAILWAY TICKET REDESIGN");
+        System.out.println("=======================");
+        String original = originalTicket(fields);
+        StringBuilder builder = new StringBuilder(2048);
+        String redesigned =
+                redesignedTicket(builder, fields);
+        System.out.println("\nCORRECTNESS CHECK");
+        System.out.println("Same Output: "
+                + original.equals(redesigned));
+        System.out.println("\nTEST CONDITIONS");
+        System.out.println("Number of Tickets: " + tickets);
+        System.out.println("Fields Per Ticket: " + fieldCount);
+        for (int i = 0; i < 3; i++) {
+            testOriginal(fields, 500);
+            testRedesigned(fields, 500);
+        }
+        int repetitions = 5;
+        double originalTotal = 0;
+        double redesignedTotal = 0;
+        for (int i = 0; i < repetitions; i++) {
+            originalTotal += testOriginal(fields, tickets);
+            redesignedTotal += testRedesigned(fields, tickets);
+        }
+        double originalAverage =
+                originalTotal / repetitions
+        double redesignedAverage =
+                redesignedTotal / repetitions;
+        System.out.println("\nPERFORMANCE RESULTS");
+        System.out.printf("Original String: %.3f ms%n",
+                originalAverage);
+        System.out.printf("Redesigned StringBuilder: %.3f ms%n",
+                redesignedAverage);
+
+        if (redesignedAverage > 0) {
+            double improvement =
+                    originalAverage / redesignedAverage;
+            System.out.printf("Speed Improvement: %.2f times%n",
+                    improvement);
+        }
+        System.out.println("\nOBJECT CREATION ESTIMATE");
+
+        System.out.println("Original: Approximately "
+                + ((long) tickets * fieldCount)
+                + " concatenated String results.");
+        System.out.println("Redesigned: One reusable builder "
+                + "and one final String per ticket.");
+        System.out.println("\nFinal Checksum: " + checksum);
+        System.out.println("\nProgram Completed.");
+    }
+}
