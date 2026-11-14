@@ -1,0 +1,124 @@
+import java.io.*;
+import java.nio.file.*;
+import java.util.*;
+import java.util.concurrent.*;
+public class Main {
+    static class StudentResult {
+        String fileName;
+        boolean success;
+        double average;
+        String message;
+        StudentResult(String fileName, boolean success,
+                      double average, String message) {
+            this.fileName = fileName;
+            this.success = success;
+            this.average = average;
+            this.message = message;
+        }
+    }
+    static class ResultTask implements Callable<StudentResult> {
+        private final Path file;
+        ResultTask(Path file) {
+            this.file = file;
+        }
+        public StudentResult call() {
+            try {
+                String data = new String(
+                    Files.readAllBytes(file)).trim();
+                String[] values = data.split(",");
+                if (values.length != 4) {
+                    throw new IllegalArgumentException(
+                        "Invalid file format");
+                }
+                int m1 = Integer.parseInt(values[1].trim());
+                int m2 = Integer.parseInt(values[2].trim());
+                int m3 = Integer.parseInt(values[3].trim());
+                if (m1 < 0 || m1 > 100 ||
+                    m2 < 0 || m2 > 100 ||
+                    m3 < 0 || m3 > 100) {
+                    throw new IllegalArgumentException(
+                        "Invalid marks");
+                }
+                double average = (m1 + m2 + m3) / 3.0;
+                return new StudentResult(
+                    file.getFileName().toString(),
+                    true,
+                    average,
+                    average >= 50 ? "PASS" : "FAIL");
+            } catch (Exception e) {
+                return new StudentResult(
+                    file.getFileName().toString(),
+                    false,
+                    0,
+                    e.getClass().getSimpleName());
+            }
+        }
+    }
+    public static void main(String[] args)
+            throws Exception {
+        List<Path> files = new ArrayList<>();
+        Path folder = Paths.get("student_files");
+        Files.createDirectories(folder);
+        for (int i = 1; i <= 10; i++) {
+            Path file = folder.resolve("student" + i + ".txt");
+            if (i == 9) {
+                Files.deleteIfExists(file); // Missing file
+            } else if (i == 10) {
+                Files.write(file,
+                    "S010,ABC,70,80".getBytes()); // Corrupt file
+            } else {
+                String data = "S00" + i + ",80,75,90";
+                Files.write(file, data.getBytes());
+            }
+            files.add(file);
+        }
+        ExecutorService executor =
+            Executors.newFixedThreadPool(4);
+        ConcurrentLinkedQueue<StudentResult> results =
+            new ConcurrentLinkedQueue<>();
+        List<Future<StudentResult>> futures =
+            new ArrayList<>();
+        long start = System.currentTimeMillis();
+        try {
+            for (Path file : files) {
+                futures.add(
+                    executor.submit(new ResultTask(file)));
+            }
+            for (int i = 0; i < futures.size(); i++) {
+                try {
+                    StudentResult result = futures.get(i).get();
+                    results.add(result);
+
+                } catch (ExecutionException e) {
+                    results.add(new StudentResult(
+                        files.get(i).getFileName().toString(),
+                        false, 0, "Unexpected task error"));
+                }
+            }
+        } finally {
+            executor.shutdown();
+        }
+        long end = System.currentTimeMillis();
+        int success = 0;
+        int failure = 0;
+        System.out.println("STUDENT RESULT PROCESSING");
+        for (StudentResult r : results) {
+            if (r.success) {
+                success++;
+                System.out.println(r.fileName +
+                    " : " + r.message +
+                    " | Average: " + r.average);
+            } else {
+                failure++;
+                System.out.println(r.fileName +
+                    " : FAILED (" + r.message + ")");
+            }
+        }
+        System.out.println("\nTOTAL FILES: " + files.size());
+        System.out.println("SUCCESS: " + success);
+        System.out.println("FAILURE: " + failure);
+        System.out.println("TIME: " + (end - start) + " ms");
+        System.out.println("CHECK: " +
+            (success + failure) + " files processed");
+    }
+}
