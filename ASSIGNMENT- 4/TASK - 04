@@ -1,0 +1,29 @@
+import java.util.ArrayList;
+import java.util.Scanner
+public class Main {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        ArrayList<String> points = new ArrayList<>();
+        System.out.println("===== DRAWING PAD =====");
+        System.out.print("Enter number of clicks: ");
+        int n = sc.nextInt();
+        for (int i = 1; i <= n; i++) {
+            System.out.println("\nClick " + i);
+            System.out.print("Enter X coordinate: ");
+            int x = sc.nextInt();
+            System.out.print("Enter Y coordinate: ");
+            int y = sc.nextInt();
+            points.add("(" + x + ", " + y + ")");
+            System.out.println("Point stored successfully!");
+            System.out.println("Clicks: " + points.size());
+        }
+        System.out.println("\n===== DRAWING OUTPUT =====");
+        for (String point : points) {
+            System.out.println("Dot at " + point);
+        }
+        System.out.println("Total Clicks: " + points.size());
+        System.out.println("All points are stored successfully.");
+
+        sc.close();
+    }
+}
