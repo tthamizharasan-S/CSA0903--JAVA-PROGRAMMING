@@ -1,0 +1,99 @@
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.Scanner;
+public class Main implements ActionListener {
+    private double amount;
+    private String currency;
+    private String result;
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        convert();
+    }
+    private void convert() {
+        try {
+            double value = amount;
+            double rate = currency.equals("USD") ? 0.012 : 0.011;
+            double converted = value * rate;
+            result = String.format("%.2f %s", converted, currency);
+            System.out.println("Result Dialog: " + result);
+        } catch (Exception e) {
+            System.out.println("Result Dialog: Invalid amount");
+        }
+    }
+    class NamedHandler implements ActionListener {
+        public void actionPerformed(ActionEvent e) {
+            convert();
+        }
+    }
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        Main app = new Main();
+        System.out.println("===== CURRENCY CONVERTER =====");
+        System.out.println("1. Class implements ActionListener");
+        System.out.println("2. Named inner class");
+        System.out.println("3. Anonymous inner class");
+        System.out.println("4. Lambda expression");
+        System.out.print("Select event handling style: ");
+        int choice = sc.nextInt();
+        sc.nextLine();
+        System.out.print("Enter amount in INR: ");
+        String input = sc.nextLine();
+        try {
+            app.amount = Double.parseDouble(input);
+            if (app.amount < 0) {
+                throw new NumberFormatException();
+            }
+        } catch (NumberFormatException e) {
+            System.out.println("Result Dialog: Invalid amount");
+            sc.close();
+            return;
+        }
+        System.out.print("Select currency (USD/EUR): ");
+        app.currency = sc.nextLine().toUpperCase();
+        if (!app.currency.equals("USD") &&
+            !app.currency.equals("EUR")) {
+            System.out.println("Invalid currency selection");
+            sc.close();
+            return;
+        }
+        ActionListener handler;
+        switch (choice) {
+            case 1:
+                handler = app;
+                break;
+            case 2:
+                handler = app.new NamedHandler();
+                break;
+            case 3:
+                handler = new ActionListener() {
+                    public void actionPerformed(ActionEvent e) {
+                        app.convert();
+                    }
+                };
+                break;
+            case 4:
+                handler = e -> app.convert();
+                break;
+            default:
+                System.out.println("Invalid choice");
+                sc.close();
+                return;
+        }
+        System.out.println("\n1. Convert button");
+        System.out.println("2. Press Enter key");
+        System.out.print("Choose trigger: ");
+        int trigger = sc.nextInt();
+        if (trigger == 1) {
+            handler.actionPerformed(
+                new ActionEvent(app, ActionEvent.ACTION_PERFORMED, "Convert")
+            );
+        } else if (trigger == 2) {
+            handler.actionPerformed(
+                new ActionEvent(app, ActionEvent.ACTION_PERFORMED, "Enter")
+            );
+        } else {
+            System.out.println("Invalid trigger");
+        }
+        sc.close();
+    }
+}
