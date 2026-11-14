@@ -1,0 +1,71 @@
+import java.util.concurrent.*;
+public class Main {
+    static class MethodBooking {
+        boolean[] booked;
+        MethodBooking(int seats) {
+            booked = new boolean[seats];
+        }
+        synchronized void book(int seat) {
+            if (!booked[seat]) {
+                booked[seat] = true;
+            }
+        }
+    }
+    static class BlockBooking {
+        boolean[] booked;
+        BlockBooking(int seats) {
+            booked = new boolean[seats];
+        }
+        void book(int seat) {
+            synchronized (this) {
+                if (!booked[seat]) {
+                    booked[seat] = true;
+                }
+            }
+        }
+    }
+    public static void main(String[] args)
+            throws InterruptedException {
+        final int seats = 10000;
+        final int threads = 4;
+        MethodBooking method = new MethodBooking(seats);
+        long start = System.nanoTime();
+        Thread[] t1 = new Thread[threads];
+        for (int i = 0; i < threads; i++) {
+            final int startSeat = i * (seats / threads);
+            t1[i] = new Thread(() -> {
+                for (int j = startSeat;
+                     j < startSeat + seats / threads; j++) {
+                    method.book(j);
+                }
+            });
+            t1[i].start();
+        }
+        for (Thread t : t1) {
+            t.join();
+        }
+        long methodTime = System.nanoTime() - start;
+        BlockBooking block = new BlockBooking(seats);
+        start = System.nanoTime();
+        Thread[] t2 = new Thread[threads];
+        for (int i = 0; i < threads; i++) {
+            final int startSeat = i * (seats / threads);
+            t2[i] = new Thread(() -> {
+                for (int j = startSeat;
+                     j < startSeat + seats / threads; j++) {
+                    block.book(j);
+                }
+            });
+            t2[i].start();
+        }
+        for (Thread t : t2) {
+            t.join();
+        }
+        long blockTime = System.nanoTime() - start;
+        System.out.println("Total Bookings: " + seats);
+        System.out.println("Synchronized Method Time: "
+                           + methodTime / 1000000.0 + " ms");
+        System.out.println("Synchronized Block Time: "
+                           + blockTime / 1000000.0 + " ms");
+    }
+}
