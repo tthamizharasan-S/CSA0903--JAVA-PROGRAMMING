@@ -1,0 +1,122 @@
+import java.io.*;
+import java.nio.file.*;
+import java.util.*;
+import java.util.concurrent.*;
+public class Main {
+    static final int TOTAL = 10000;
+    static class Result {
+        boolean success;
+        String message;
+        Result(boolean success, String message) {
+            this.success = success;
+            this.message = message;
+        }
+    }
+    static Result processFile(Path file) {
+        try {
+            String data = new String(
+                Files.readAllBytes(file)).trim();
+            String[] values = data.split(",");
+            if (values.length != 4) {
+                throw new IllegalArgumentException(
+                    "Invalid file format");
+            }
+            int m1 = Integer.parseInt(values[1].trim());
+            int m2 = Integer.parseInt(values[2].trim());
+            int m3 = Integer.parseInt(values[3].trim());
+            if (m1 < 0 || m1 > 100 ||
+                m2 < 0 || m2 > 100 ||
+                m3 < 0 || m3 > 100) {
+                throw new IllegalArgumentException(
+                    "Invalid marks");
+            }
+            double average = (m1 + m2 + m3) / 3.0;
+            return new Result(true,
+                average >= 50 ? "PASS" : "FAIL");
+        } catch (Exception e) {
+            return new Result(false,
+                e.getClass().getSimpleName());
+        }
+    }
+    static List<Path> createFiles() throws IOException 
+        Path folder = Paths.get("score_files");
+        Files.createDirectories(folder);
+        List<Path> files = new ArrayList<>();
+        for (int i = 1; i <= TOTAL; i++) 
+            Path file = folder.resolve(
+                "student" + i + ".txt");
+            if (i % 1000 == 0) {
+                // 10 missing files
+                Files.deleteIfExists(file);
+            }
+            else if (i % 1000 == 1) {
+                // 10 corrupt files
+                Files.write(file,
+                    "S001,ABC,75,90".getBytes());
+            }
+            else {
+                // Valid files
+                Files.write(file,
+                    ("S" + i + ",80,75,90").getBytes());
+            }
+            files.add(file);
+        }
+        return files;
+    }
+    static void benchmark(List<Path> files, int threads)
+            throws InterruptedException {
+        ExecutorService executor =
+            Executors.newFixedThreadPool(threads);
+        List<Future<Result>> futures = new ArrayList<>();
+        long start = System.nanoTime();
+        try {
+            for (Path file : files) {
+                futures.add(executor.submit(
+                    () -> processFile(file)));
+            }
+            int success = 0;
+            int failure = 0;
+            for (Future<Result> future : futures) {
+                try {
+                    Result r = future.get();
+                    if (r.success) {
+                        success++;
+                    } else {
+                        failure++;
+                    }
+                } catch (ExecutionException e) {
+                    failure++;
+                }
+            }
+            long end = System.nanoTime();
+            System.out.println(
+                threads + "\t" +
+                success + "\t" +
+                failure + "\t" +
+                ((end - start) / 1_000_000) + " ms");
+            if (success + failure != files.size()) {
+                System.out.println("ERROR: Count mismatch!");
+            }
+        } catch (InterruptedException e) {
+            executor.shutdownNow();
+            Thread.currentThread().interrupt();
+            throw e;
+        } finally {
+            executor.shutdown();
+        }
+    }
+    public static void main(String[] args)
+            throws Exception {
+        List<Path> files = createFiles();
+        System.out.println("TOTAL FILES: " + files.size());
+        System.out.println("\nTHREAD POOL BENCHMARK");
+        System.out.println(
+            "Threads\tSuccess\tFailure\tTime");
+        int[] poolSizes = {1, 2, 4, 8};
+        for (int size : poolSizes) {
+            benchmark(files, size);
+        }
+        System.out.println("\nEXPECTED SUCCESS: 9980");
+        System.out.println("EXPECTED FAILURE: 20");
+    }
+}
