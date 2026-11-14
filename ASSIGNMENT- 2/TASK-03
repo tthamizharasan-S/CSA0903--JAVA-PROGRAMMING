@@ -1,0 +1,70 @@
+import java.util.*;
+class Student {
+    String regNo;
+    String name;
+    Student(String regNo, String name) {
+        this.regNo = regNo;
+        this.name = name;
+    }
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (!(obj instanceof Student))
+            return false;
+        Student s = (Student) obj;
+        return Objects.equals(this.regNo, s.regNo);
+    }
+    @Override
+    public int hashCode() {
+        return Objects.hash(regNo);
+    }
+    public String toString() {
+        return regNo + " - " + name;
+    }
+}
+public class Main {
+    public static void main(String[] args) {
+        System.out.println("HASHSET STUDENT DE-DUPLICATION");
+        System.out.println("================================");
+        System.out.println("\nTEST 1: UNIQUE STUDENTS");
+        HashSet<Student> set1 = new HashSet<>();
+        set1.add(new Student("101", "Arun"));
+        set1.add(new Student("102", "Bala"));
+        set1.add(new Student("103", "Charan"));
+        System.out.println("Expected Size: 3");
+        System.out.println("Actual Size: " + set1.size());
+        System.out.println(set1);
+        System.out.println("\nTEST 2: DUPLICATE SCANS");
+        HashSet<Student> set2 = new HashSet<>();
+        set2.add(new Student("101", "Arun"));
+        set2.add(new Student("102", "Bala"));
+        set2.add(new Student("101", "Arun"));
+        set2.add(new Student("103", "Charan"));
+        set2.add(new Student("102", "Bala"));
+        System.out.println("Expected Size: 3");
+        System.out.println("Actual Size: " + set2.size());
+        System.out.println(set2);
+        System.out.println("\nTEST 3: MODIFYING REGISTRATION NUMBER");
+        HashSet<Student> set3 = new HashSet<>();
+        Student s1 = new Student("201", "David");
+        set3.add(s1
+        System.out.println("Size Before Change: " + set3.size());
+        s1.regNo = "202";
+        System.out.println("Contains After Change: " + set3.contains(s1));
+        set3.add(new Student("202", "David"));
+        System.out.println("Size After Adding Same ID: " + set3.size());
+        System.out.println("\nTEST 4: CONTRACT VERIFICATION");
+        Student a = new Student("301", "Kumar");
+        Student b = new Student("301", "Kumar");
+        System.out.println("Equals: " + a.equals(b));
+        System.out.println("Same HashCode: "
+                + (a.hashCode() == b.hashCode()));
+        HashSet<Student> set4 = new HashSet<>();
+        set4.add(a);
+        set4.add(b);
+        System.out.println("Expected Size: 1");
+        System.out.println("Actual Size: " + set4.size());
+        System.out.println("\nProgram Completed.");
+    }
+}
