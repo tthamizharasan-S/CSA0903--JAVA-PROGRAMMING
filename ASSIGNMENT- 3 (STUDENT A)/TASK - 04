@@ -1,0 +1,50 @@
+class ScannerStation extends Thread {
+    int station;
+    int scripts;
+    static int total = 0;
+    ScannerStation(int station, int scripts) {
+        this.station = station;
+        this.scripts = scripts;
+    }
+    public void run() {
+        System.out.println("Station " + station + " started.");
+        try {
+            for (int i = 1; i <= scripts; i++) {
+                Thread.sleep(200);
+                System.out.println("Station " + station +
+                                   " scanned script " + i);
+            }
+        } catch (InterruptedException e) {
+            System.out.println("Station interrupted.");
+            Thread.currentThread().interrupt();
+        }
+        synchronized (ScannerStation.class) {
+            total += scripts;
+        }
+        System.out.println("Station " + station +
+                           " completed " + scripts + " scripts.");
+    }
+    public static void main(String[] args) {
+        ScannerStation s1 = new ScannerStation(1, 3);
+        ScannerStation s2 = new ScannerStation(2, 3);
+        ScannerStation s3 = new ScannerStation(3, 3);
+        ScannerStation s4 = new ScannerStation(4, 3);
+        s1.start();
+        s2.start();
+        s3.start();
+        s4.start();
+        System.out.println("Station 1 alive: " + s1.isAlive());
+        try {
+            s1.join();
+            s2.join();
+            s3.join();
+            s4.join();
+        } catch (InterruptedException e) {
+            System.out.println("Main interrupted.");
+            Thread.currentThread().interrupt();
+            return;
+        }
+        System.out.println("All stations completed.");
+        System.out.println("Total scripts scanned: " + total);
+    }
+}
