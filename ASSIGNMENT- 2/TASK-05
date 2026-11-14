@@ -1,0 +1,84 @@
+import java.util.*;
+class Team {
+    String name;
+    int points;
+    int goalDifference;
+    Team(String name, int points, int goalDifference) {
+        this.name = name;
+        this.points = points;
+        this.goalDifference = goalDifference;
+    }
+    public String toString() {
+        return name + " | Points: " + points
+                + " | Goal Difference: " + goalDifference;
+    }
+}
+class Leaderboard<T> {
+    private List<T> participants;
+    Leaderboard(List<? extends T> data) {
+        participants = new ArrayList<>(data);
+    }
+    public void rank(Comparator<? super T> comparator) {
+        participants.sort(comparator);
+    }
+    public void display() {
+        for (T item : participants) {
+            System.out.println(item);
+        }
+    }
+}
+public class Main {
+    public static void main(String[] args) {
+        Comparator<Team> ranking =
+                Comparator.comparingInt((Team t) -> t.points)
+                .reversed()
+                .thenComparing(
+                    Comparator.comparingInt(
+                        (Team t) -> t.goalDifference
+                    ).reversed()
+                )
+                .thenComparing(t -> t.name);
+        List<Team> teams = Arrays.asList(
+            new Team("Panthers", 80, 15),
+            new Team("Bisons", 80, 20),
+            new Team("Eagles", 90, 10),
+            new Team("Lions", 80, 20),
+            new Team("Tigers", 70, 25),
+            new Team("Wolves", 90, 10),
+            new Team("Falcons", 80, 15)
+        );
+        System.out.println("SPORTS LEADERBOARD");
+        System.out.println("===================");
+        Leaderboard<Team> board =
+                new Leaderboard<>(teams);
+        board.rank(ranking);
+        System.out.println("\nTEST 1: CORRECT RANKING");
+        board.display();
+        Comparator<Team> faultyComparator =
+                (a, b) -> b.points - a.points;
+        List<Team> faultyTeams = new ArrayList<>(Arrays.asList(
+            new Team("Panthers", 80, 15),
+            new Team("Bisons", 80, 20),
+            new Team("Lions", 80, 20),
+            new Team("Eagles", 90, 10)
+        ));
+        System.out.println("\nTEST 2: FAULTY COMPARATOR");
+        faultyTeams.sort(faultyComparator);
+        for (Team t : faultyTeams) {
+            System.out.println(t);
+        }
+        System.out.println("\nTEST 3: COMPARATOR VERIFICATION");
+        Team a = new Team("Bisons", 80, 20);
+        Team b = new Team("Panthers", 80, 15);
+        Team c = new Team("Tigers", 70, 25);
+        int ab = ranking.compare(a, b);
+        int bc = ranking.compare(b, c);
+        int ac = ranking.compare(a, c);
+        System.out.println("Bisons vs Panthers: " + ab);
+        System.out.println("Panthers vs Tigers: " + bc);
+        System.out.println("Bisons vs Tigers: " + ac);
+        System.out.println("Transitivity Valid: "
+                + (ab < 0 && bc < 0 && ac < 0));
+        System.out.println("\nProgram Completed.");
+    }
+}
