@@ -1,0 +1,73 @@
+import java.util.*;
+class Patient {
+    final String name;
+    final int severity;
+    final long arrival;
+    Patient(String name, int severity, long arrival) {
+        this.name = name;
+        this.severity = severity;
+        this.arrival = arrival;
+    }
+    public String toString() {
+        return name + "(S" + severity + ")";
+    }
+}
+public class Main {
+    private long counter = 0;
+    PriorityQueue<Patient> queue = new PriorityQueue<>(
+        Comparator.comparingInt((Patient p) -> p.severity)
+        .thenComparingLong(p -> p.arrival)
+    );
+    void admit(String name, int severity) {
+        queue.add(new Patient(name, severity, counter++));
+    }
+    Patient next() {
+        return queue.poll();
+    }
+    static void performanceTest(int size) {
+        PriorityQueue<Patient> pq = new PriorityQueue<>(
+            Comparator.comparingInt((Patient p) -> p.severity)
+            .thenComparingLong(p -> p.arrival)
+        );
+        long start = System.nanoTime();
+        for (int i = 0; i < size; i++) {
+            pq.add(new Patient("Patient" + i, (i % 5) + 1, i));
+        }
+        long end = System.nanoTime();
+        System.out.printf("Insertion Time: %.3f ms%n",
+                (end - start) / 1_000_000.0);
+        start = System.nanoTime();
+        while (!pq.isEmpty()) {
+            pq.poll();
+        }
+        end = System.nanoTime();
+        System.out.printf("Removal Time: %.3f ms%n",
+                (end - start) / 1_000_000.0);
+    }
+    public static void main(String[] args) {
+        Main er = new Main();
+        System.out.println("HOSPITAL EMERGENCY TRIAGE");
+        System.out.println("=========================");
+        er.admit("Ravi", 3);
+        er.admit("Meena", 1);
+        er.admit("John", 3);
+        er.admit("Asha", 5);
+        er.admit("Kumar", 1);
+        er.admit("Lata", 2);
+        er.admit("Priya", 4);
+        er.admit("Arun", 2);
+        System.out.println("\nCORRECT TREATMENT ORDER:");
+        Patient p;
+        while ((p = er.next()) != null) {
+            System.out.print(p + " ");
+        }
+        System.out.println("\n\nPERFORMANCE ANALYSIS");
+        System.out.println("\nQueue Size: 1000");
+        performanceTest(1000);
+        System.out.println("\nQueue Size: 10000");
+        performanceTest(10000);
+        System.out.println("\nQueue Size: 50000");
+        performanceTest(50000);
+        System.out.println("\nProgram Completed.");
+    }
+}
