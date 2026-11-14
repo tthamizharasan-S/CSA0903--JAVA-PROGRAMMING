@@ -1,0 +1,93 @@
+import java.util.*;
+public class Main {
+    static volatile long result = 0;
+    static void testList(String name, List<Integer> list,
+                         int size) {
+        for (int i = 0; i < size; i++) {
+            list.add(i);
+        }
+        System.out.println("\n" + name);
+        long start = System.nanoTime();
+        for (int i = 0; i < 1000; i++) {
+            list.add(i);
+        }
+        long end = System.nanoTime();
+        System.out.println("Add at End: " + (end - start) + " ns");
+        start = System.nanoTime();
+        for (int i = 0; i < 100; i++) {
+            list.add(0, i);
+        end = System.nanoTime();
+        System.out.println("Insert at Front: " + (end - start) + " ns");
+        start = System.nanoTime();
+        for (int i = 0; i < 100; i++) {
+            list.add(list.size() / 2, i);
+        }
+        end = System.nanoTime();
+        System.out.println("Insert in Middle: " + (end - start) + " ns");
+       start = System.nanoTime();
+        for (int i = 0; i < 100; i++) {
+            list.remove(0);
+        }
+        end = System.nanoTime();
+        System.out.println("Remove from Front: " + (end - start) + " ns");
+        start = System.nanoTime();
+        for (int i = 0; i < 100; i++) {
+            list.remove(list.size() / 2);
+        }
+        end = System.nanoTime();
+        System.out.println("Remove from Middle: " + (end - start) + " ns");
+        start = System.nanoTime();
+        for (int i = 0; i < 1000; i++) {
+            result += list.get(list.size() / 2);
+        }
+        end = System.nanoTime();
+        System.out.println("Access K-th Element: " + (end - start) + " ns");
+
+        start = System.nanoTime();
+        for (int value : list) {
+            result += value;
+        }
+        end = System.nanoTime();
+        System.out.println("Full Iteration: " + (end - start) + " ns");
+    }
+    static void testDeque(int size) {
+        ArrayDeque<Integer> queue = new ArrayDeque<>();
+
+        for (int i = 0; i < size; i++) {
+            queue.addLast(i);
+        }
+        System.out.println("\nArrayDeque - Up Next Queue");
+        long start = System.nanoTime();
+        for (int i = 0; i < 1000; i++) {
+            queue.addFirst(i);
+            queue.addLast(i);
+        }
+        long end = System.nanoTime();
+        System.out.println("Add at Both Ends: " + (end - start) + " ns");
+        start = System.nanoTime();
+        for (int i = 0; i < 1000; i++) {
+            queue.removeFirst();
+        }
+        end = System.nanoTime();
+        System.out.println("Remove from Front: " + (end - start) + " ns");
+        start = System.nanoTime();
+        for (int value : queue) {
+            result += value;
+        }
+        end = System.nanoTime();
+        System.out.println("Full Iteration: " + (end - start) + " ns");
+    }
+    public static void main(String[] args) {
+        int[] sizes = {1000, 10000, 50000};
+        System.out.println("MUSIC PLAYLIST PERFORMANCE ANALYSIS");
+        System.out.println("====================================");
+        for (int size : sizes) {
+            System.out.println("\n\nPLAYLIST SIZE: " + size);
+            testList("ArrayList", new ArrayList<Integer>(), size);
+            testList("LinkedList", new LinkedList<Integer>(), size);
+            testDeque(size);
+        }
+        System.out.println("\n\nFinal Result: " + result);
+        System.out.println("Performance Analysis Completed.");
+    }
+}
