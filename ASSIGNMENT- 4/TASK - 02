@@ -1,0 +1,175 @@
+import java.util.*;
+public class Main {
+    static Scanner sc = new Scanner(System.in);
+    static Map<String, List<String>> doctorMap = new HashMap<>();
+    static boolean bookingInProgress = false;
+    static void loadDoctors() {
+        doctorMap.put("Cardiology",
+                Arrays.asList("Dr. Kumar", "Dr. Priya"));
+
+        doctorMap.put("Neurology",
+                Arrays.asList("Dr. Ravi", "Dr. Meena"));
+        doctorMap.put("Orthopedics",
+                Arrays.asList("Dr. Arun", "Dr. Divya"));
+        doctorMap.put("Dermatology",
+                Arrays.asList("Dr. Suresh", "Dr. Anitha"));
+    }
+    static void displayDepartments() {
+        System.out.println("\nAvailable Departments:");
+        int i = 1;
+        for (String dept : doctorMap.keySet()) {
+            System.out.println(i + ". " + dept);
+            i++;
+        }
+    }
+    static String selectDepartment() {
+        List<String> departments =
+                new ArrayList<>(doctorMap.keySet());
+        displayDepartments();
+        System.out.print("Select Department: ");
+        int choice = readInteger();
+        if (choice < 1 || choice > departments.size()) {
+            System.out.println("Invalid department selection!");
+            return null;
+        }
+        return departments.get(choice - 1);
+    }
+    static String selectDoctor(String department) {
+        List<String> doctors = doctorMap.get(department);
+        System.out.println("\nAvailable Doctors:");
+        for (int i = 0; i < doctors.size(); i++) {
+            System.out.println((i + 1) + ". " + doctors.get(i));
+        }
+        System.out.print("Select Doctor: ");
+        int choice = readInteger();
+        if (choice < 1 || choice > doctors.size()) {
+            System.out.println("Invalid doctor selection!");
+            return null;
+        }
+        return doctors.get(choice - 1);
+    }
+
+    static String selectTimeSlot() {
+        String[] slots = {
+            "09:00 AM",
+            "10:00 AM",
+            "11:00 AM",
+            "02:00 PM",
+            "03:00 PM"
+        };
+        System.out.println("\nAvailable Time Slots:");
+        for (int i = 0; i < slots.length; i++) {
+            System.out.println((i + 1) + ". " + slots[i]);
+        }
+        System.out.print("Select Time Slot: ");
+        int choice = readInteger();
+
+        if (choice < 1 || choice > slots.length) {
+            System.out.println("Invalid time slot!");
+            return null;
+        }
+        return slots[choice - 1];
+    }
+    static int readInteger() {
+        try {
+            return Integer.parseInt(sc.nextLine().trim());
+        } catch (NumberFormatException e) {
+            return -1;
+        }
+    }
+    static void bookAppointment() {
+        System.out.print("\nEnter Patient ID: ");
+        String patientId = sc.nextLine().trim();
+        if (patientId.isEmpty()) {
+            System.out.println("Error: Patient ID is required!");
+            return;
+        }
+        String department = selectDepartment();
+        if (department == null) {
+            return;
+        }
+        System.out.println("\nDoctor list refreshed for " + department);
+        String doctor = selectDoctor(department);
+        if (doctor == null) {
+            return;
+        }
+        String time = selectTimeSlot();
+        if (time == null) {
+            return;
+        }
+        System.out.println("\nAppointment Details");
+        System.out.println("Patient ID: " + patientId);
+        System.out.println("Department: " + department);
+        System.out.println("Doctor: " + doctor);
+        System.out.println("Time Slot: " + time);
+        System.out.print("\nConfirm Booking? (yes/no): ");
+        String confirm = sc.nextLine().trim();
+        if (!confirm.equalsIgnoreCase("yes")) {
+            System.out.println("Booking Cancelled!");
+            return;
+        }
+        bookingInProgress = true;
+        System.out.println("\nProcessing Appointment...");
+        System.out.println("Appointment Booked Successfully!");
+        bookingInProgress = false;
+        System.out.println("\n----- APPOINTMENT CONFIRMATION -----");
+        System.out.println("Patient ID: " + patientId);
+        System.out.println("Department: " + department);
+        System.out.println("Doctor: " + doctor);
+        System.out.println("Time Slot: " + time);
+        System.out.println("Status: CONFIRMED");
+        System.out.println("------------------------------------");
+    }
+    static void clearDetails() {
+        System.out.println("Appointment details cleared!");
+    }
+    public static void main(String[] args) {
+        loadDoctors();
+        System.out.println("HOSPITAL OUTPATIENT APPOINTMENT DESK");
+        boolean running = true;
+        while (running) {
+            System.out.println("\n========== MAIN MENU ==========");
+            System.out.println("1. Book Appointment");
+            System.out.println("2. Clear Details");
+            System.out.println("3. Exit");
+            System.out.print("Enter your choice: ");
+            int choice = readInteger();
+            switch (choice) {
+                case 1:
+                    bookAppointment();
+                    break;
+                case 2:
+                    clearDetails();
+                    break;
+                case 3:
+                    if (bookingInProgress) {
+                        System.out.print(
+                            "Booking is in progress. Close window? (yes/no): ");
+                        String answer = sc.nextLine();
+                        if (answer.equalsIgnoreCase("yes")) {
+                            running = false;
+                        } else {
+                            System.out.println("Continue booking.");
+                        }
+                    } else {
+                        System.out.print(
+                            "Are you sure you want to exit? (yes/no): ");
+
+                        String answer = sc.nextLine();
+                        if (answer.equalsIgnoreCase("yes")) {
+                            running = false;
+                        } else {
+                            System.out.println("Application remains open.");
+                        }
+                    }
+                   break;
+                default:
+                    System.out.println("Invalid choice! Try again.");
+            }
+        }
+     
+
+   System.out.println("\nHospital Appointment Desk Closed.");
+        sc.close();
+    }
+}
