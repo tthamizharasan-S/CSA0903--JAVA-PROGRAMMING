@@ -1,0 +1,35 @@
+import java.io.*;
+public class Main {
+    public static void main(String[] args) {
+        String fileName = "attendance.txt";
+        try (BufferedWriter bw = new BufferedWriter(
+                new FileWriter(fileName))) {
+            bw.write("Student 1 - Present\n");
+            bw.write("Student 2 - Absent\n");
+            bw.write("Student 3 - Present\n");
+            bw.write("Student 4 - Present\n");
+        } catch (IOException e) {
+            System.out.println("File creation error: " + e.getMessage());
+            return;
+        }
+        int lines = 0;
+        int bufferSize = 8192;
+        try (BufferedInputStream bis = new BufferedInputStream(
+                new FileInputStream(fileName), bufferSize)) {
+            int data;
+
+            while ((data = bis.read()) != -1) {
+                if (data == '\n') {
+                    lines++;
+                }
+            }
+            if (new File(fileName).length() > 0) {
+            }
+            System.out.println("File read successfully.");
+            System.out.println("Number of lines: " + lines);
+            System.out.println("Buffer size: " + bufferSize + " bytes");
+        } catch (IOException e) {
+            System.out.println("Reading error: " + e.getMessage());
+        }
+    }
+}
