@@ -1,0 +1,120 @@
+import java.io.*;
+import java.util.*;
+public class Main {
+    static class Pass {
+        String id, reg, name;
+        int route, campus;
+        double amount;
+        Pass(String id, String reg, String name,
+             int route, double amount, int campus) {
+            this.id = id;
+            this.reg = reg;
+            this.name = name;
+            this.route = route;
+            this.amount = amount;
+            this.campus = campus;
+        }
+    }
+    static ArrayList<Pass> database = new ArrayList<Pass>();
+    static void createFile() throws Exception {
+        PrintWriter pw = new PrintWriter("buspass.txt");
+        pw.println("P101,REG101,Arun,12,500,1");
+        pw.println("P102,REG102,Divya,15,700,2");
+        pw.println("P103,REG103,Kumar,10,600,3");
+        pw.println("P104,REG104,Ravi,ABC,800,4");
+        pw.println("P105,REG105,Meena,14,550,5");
+        pw.println("P106,REG106,John,11,INVALID,6");
+        pw.println("P107,REG107,Anu,13,650,7");
+        pw.close();
+    }
+    static void migrate(String filename) throws Exception {
+        ArrayList<Pass> temporary =
+            new ArrayList<Pass>();
+        int inserted = 0;
+        int rejected = 0;
+        int batchSize = 1000;
+        BufferedReader br =
+            new BufferedReader(new FileReader(filename));
+        String line;
+        int lineNo = 0;
+        while ((line = br.readLine()) != null) {
+            lineNo++;
+            try {
+                String[] p = line.split(",", -1);
+                if (p.length != 6)
+                    throw new Exception("Wrong number of fields");
+                if (p[0].trim().isEmpty() ||
+                    p[1].trim().isEmpty() ||
+                    p[2].trim().isEmpty())
+                    throw new Exception("Empty required field");
+                int route = Integer.parseInt(p[3].trim());
+                double amount = Double.parseDouble(p[4].trim());
+                int campus = Integer.parseInt(p[5].trim());
+                if (route <= 0 || amount < 0 ||
+                    campus < 1 || campus > 12)
+                    throw new Exception("Invalid field value");
+                temporary.add(new Pass(
+                    p[0], p[1], p[2],
+                    route, amount, campus));
+                if (temporary.size() % batchSize == 0) {
+                    System.out.println(
+                        "Batch of " + batchSize + " processed");
+                }
+            } catch (Exception e) {
+                rejected++;
+                System.out.println(
+                    "Line " + lineNo + " rejected: " +
+                    e.getMessage() + " -> " + line);
+            }
+        }
+        br.close();
+        database.addAll(temporary);
+        inserted = temporary.size();
+        System.out.println("\nMIGRATION COMPLETED");
+        System.out.println("Inserted records: " + inserted);
+        System.out.println("Rejected records: " + rejected);
+    }
+    static void inspectDatabase() {
+        System.out.println("\nDATABASE INFORMATION");
+        System.out.println("Database Product: MySQL (simulated)");
+        System.out.println("Database Version: Not connected");
+        System.out.println("JDBC Driver: Not installed");
+        System.out.println("Driver Version: Not available");
+        System.out.println("\nTABLES:");
+        System.out.println("bus_pass");
+    }
+    static void showRecords() {
+        System.out.println("\nMIGRATED BUS PASS RECORDS:");
+        for (Pass p : database) {
+            System.out.println(
+                p.id + " " +
+                p.reg + " " +
+                p.name + " " +
+                p.route + " " +
+                p.amount + " " +
+                p.campus
+            );
+        }
+        System.out.println(
+            "\nTotal records in database: " +
+            database.size());
+    }
+    public static void main(String[] args) {
+        try {
+            System.out.println("BUS PASS DATABASE MIGRATION");
+            createFile();
+            migrate("buspass.txt");
+            inspectDatabase();
+            showRecords();
+            System.out.println("\nPRODUCTION DECISION");
+            System.out.println(
+                "MySQL database is recommended for 12 campuses.");
+            System.out.println(
+                "Batch processing supports bulk migration.");
+            System.out.println(
+                "Transactions protect against partial migration.");
+        } catch (Exception e) {
+            System.out.println("ERROR: " + e.getMessage());
+        }
+    }
+}
