@@ -1,0 +1,161 @@
+import java.io.*;
+import java.util.*;
+class BusPass {
+    String passId, regNo, name, routeNo, stop, validity;
+    double amount;
+    BusPass(String passId, String regNo, String name,
+            String routeNo, String stop, String validity,
+            double amount) {
+        this.passId = passId;
+        this.regNo = regNo;
+        this.name = name;
+        this.routeNo = routeNo;
+        this.stop = stop;
+        this.validity = validity;
+        this.amount = amount;
+    }
+    String toFileString() {
+        String safeName = Base64.getEncoder().encodeToString(
+                name.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+
+        return passId + "|" + regNo + "|" + safeName + "|" +
+               routeNo + "|" + stop + "|" + validity + "|" + amount;
+    }
+    static BusPass fromFileString(String line) {
+        String[] p = line.split("\\|", -1);
+        if (p.length != 7)
+            throw new IllegalArgumentException("Invalid record");
+        String name = new String(
+            Base64.getDecoder().decode(p[2]),
+            java.nio.charset.StandardCharsets.UTF_8);
+        return new BusPass(p[0], p[1], name, p[3],
+                           p[4], p[5], Double.parseDouble(p[6]));
+    }
+    void display() {
+        System.out.println(passId + "\t" + regNo + "\t" +
+                name + "\t" + routeNo + "\t" + stop +
+                "\t" + validity + "\t" + amount);
+    }
+}
+public class Main {
+    static final String FILE = "buspasses.txt";
+    static Scanner sc = new Scanner(System.in);
+    static void addPass() {
+        try {
+            System.out.print("Enter Pass ID: ");
+            String id = sc.nextLine();
+            if (findPass(id) != null) {
+                System.out.println("Pass ID already exists!");
+                return;
+            }
+            System.out.print("Enter Register Number: ");
+            String reg = sc.nextLine();
+            System.out.print("Enter Student Name: ");
+            String name = sc.nextLine();
+            System.out.print("Enter Route Number: ");
+            String route = sc.nextLine();
+            System.out.print("Enter Boarding Stop: ");
+            String stop = sc.nextLine();
+            System.out.print("Enter Validity Date (DD-MM-YYYY): ");
+            String date = sc.nextLine()
+            System.out.print("Enter Amount Paid: ");
+            double amount = Double.parseDouble(sc.nextLine());
+            BusPass b = new BusPass(id, reg, name, route,
+                                    stop, date, amount);
+            try (BufferedWriter bw = new BufferedWriter(
+                    new FileWriter(FILE, true))) {
+                bw.write(b.toFileString());
+                bw.newLine();
+            }
+            System.out.println("Bus pass added successfully!");
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+    static BusPass findPass(String id) {
+        File f = new File(FILE);
+        if (!f.exists())
+            return null;
+        try (BufferedReader br = new BufferedReader(
+                new FileReader(FILE))) {
+            String line;
+
+            while ((line = br.readLine()) != null) {
+                try {
+                    BusPass b = BusPass.fromFileString(line);
+
+                    if (b.passId.equalsIgnoreCase(id))
+                        return b;
+                } catch (Exception e) {
+                    System.out.println("Damaged record skipped.");
+                }
+            }
+        } catch (IOException e) {
+            System.out.println("File reading error: " + e.getMessage());
+        }
+        return null;
+    }
+    static void listByRoute(String route) {
+        boolean found = false;
+        try (BufferedReader br = new BufferedReader(
+                new FileReader(FILE))) {
+            String line
+            System.out.println("\nBUS PASSES FOR ROUTE " + route);
+            System.out.println("ID\tRegister\tName\tRoute\tStop\tValidity\tAmount");
+            while ((line = br.readLine()) != null) {
+                try {
+                    BusPass b = BusPass.fromFileString(line);
+                    if (b.routeNo.equalsIgnoreCase(route)) {
+                        b.display();
+                        found = true;
+                    }
+                } catch (Exception e) {
+                    System.out.println("Damaged record skipped.");
+                }
+            }
+            if (!found)
+                System.out.println("No passes found for this route.");
+        } catch (FileNotFoundException e) {
+            System.out.println("Bus-pass file not found.");
+        } catch (IOException e) {
+            System.out.println("File error: " + e.getMessage());
+        }
+    }
+    public static void main(String[] args) {
+        while (true) {
+            System.out.println("\n===== BUS PASS MANAGEMENT =====");
+            System.out.println("1. Add New Pass");
+            System.out.println("2. Search Pass by ID");
+            System.out.println("3. List Passes by Route");
+            System.out.println("4. Exit");
+            System.out.print("Enter your choice: ");
+            String choice = sc.nextLine();
+            switch (choice) {
+                case "1":
+                    addPass();
+                    break;
+                case "2":
+                    System.out.print("Enter Pass ID: ");
+                    String id = sc.nextLine();
+                    BusPass b = findPass(id);
+                    if (b != null) {
+                        System.out.println("\nPass Found:");
+                        b.display();
+                    } else {
+                        System.out.println("Pass not found.");
+                    }
+                    break;
+                case "3":
+                    System.out.print("Enter Route Number: ");
+                    String route = sc.nextLine();
+                    listByRoute(route);
+                    break;
+                case "4":
+                    System.out.println("Program terminated.");
+                    return;
+                default:
+                    System.out.println("Invalid choice!");
+            }
+        }
+    }
+}
