@@ -1,0 +1,76 @@
+import java.io.*;
+import java.sql.Connection;
+import java.util.*;
+class Hostel implements Serializable {
+    private static final long serialVersionUID = 1L;
+    String hostelName;
+    ArrayList<Room> rooms;
+    Hostel(String hostelName) {
+        this.hostelName = hostelName;
+        rooms = new ArrayList<>();
+    }
+}
+class Room implements Serializable {
+    private static final long serialVersionUID = 1L;
+    int roomNo;
+    ArrayList<Resident> residents;
+    Room(int roomNo) {
+        this.roomNo = roomNo;
+        residents = new ArrayList<>();
+    }
+}
+class Resident implements Serializable {
+    private static final long serialVersionUID = 1L;
+    String name;
+    String regNo;
+    transient String password;
+    transient Connection connection;
+    String phoneNumber;
+    Resident(String name, String regNo,
+             String password, String phoneNumber) {
+        this.name = name;
+        this.regNo = regNo;
+        this.password = password;
+        this.phoneNumber = phoneNumber;
+    }
+}
+public class Main {
+    public static void main(String[] args) {
+        Hostel hostel = new Hostel("ABC Hostel");
+        Room room = new Room(101);
+        room.residents.add(
+            new Resident("Arun", "23CS001",
+                         "secret123", "9876543210"));
+        room.residents.add(
+            new Resident("Priya", "23CS002",
+                         "password123", "9876501234"));
+        hostel.rooms.add(room);
+        try (ObjectOutputStream out =
+                 new ObjectOutputStream(
+                     new FileOutputStream("hostel.dat"))) {
+            out.writeObject(hostel);
+            System.out.println("Hostel data saved successfully.")
+        } catch (IOException e) {
+            System.out.println("Save error: " + e.getMessage());
+        }
+        try (ObjectInputStream in =
+                 new ObjectInputStream(
+                     new FileInputStream("hostel.dat"))) {
+            Hostel h = (Hostel) in.readObject();
+            System.out.println("\nHostel Name: " + h.hostelName);
+            for (Room r : h.rooms) {
+                System.out.println("Room Number: " + r.roomNo);
+                for (Resident res : r.residents) {
+                    System.out.println("Name: " + res.name);
+                    System.out.println("Register No: " + res.regNo);
+                    System.out.println("Phone: " + res.phoneNumber);
+                    System.out.println("Password: " + res.password);
+                    System.out.println("Connection: " + res.connection);
+                }
+            }
+            System.out.println("\nHostel data loaded successfully.");
+        } catch (IOException | ClassNotFoundException e) {
+            System.out.println("Load error: " + e.getMessage());
+        }
+    }
+}
