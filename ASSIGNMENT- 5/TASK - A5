@@ -1,0 +1,42 @@
+import java.util.*;
+public class Main {
+    static class Wallet {
+        String name;
+        int balance;
+        Wallet(String name, int balance) {
+            this.name = name;
+            this.balance = balance;
+        }
+    }
+    static void transfer(Wallet hostel, Wallet canteen, int amount) {
+        int oldHostel = hostel.balance;
+        int oldCanteen = canteen.balance;
+        try {
+            if (hostel.balance < amount) {
+                throw new Exception("Insufficient balance!");
+            }
+            hostel.balance -= amount;
+            canteen.balance += amount;
+            System.out.println("Transaction committed.");
+        } catch (Exception e) {
+            hostel.balance = oldHostel;
+            canteen.balance = oldCanteen;
+            System.out.println("Transaction rolled back.");
+            System.out.println(e.getMessage());
+        }
+    }
+    public static void main(String[] args) {
+
+        Wallet hostel = new Wallet("Hostel", 2000);
+        Wallet canteen = new Wallet("Canteen", 1000);
+        System.out.println("Before Transfer:");
+        System.out.println("Hostel Wallet: Rs." + hostel.balance);
+        System.out.println("Canteen Wallet: Rs." + canteen.balance);
+        transfer(hostel, canteen, 500);
+        System.out.println("\nAfter Transfer:");
+        System.out.println("Hostel Wallet: Rs." + hostel.balance);
+        System.out.println("Canteen Wallet: Rs." + canteen.balance);
+        int total = hostel.balance + canteen.balance;
+        System.out.println("Total Balance: Rs." + total);
+    }
+}
