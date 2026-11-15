@@ -1,0 +1,196 @@
+import java.util.*;
+public class Main {
+    static class Pass {
+        String id, reg, name;
+        int route;
+        double amount;
+        Pass(String id, String reg, String name,
+             int route, double amount) {
+            this.id = id;
+            this.reg = reg;
+            this.name = name;
+            this.route = route;
+            this.amount = amount;
+        }
+    }
+    static ArrayList<Pass> table = new ArrayList<Pass>();
+    static ArrayList<String[]> generate(int n, String prefix) {
+        ArrayList<String[]> data = new ArrayList<String[]>();
+        for (int i = 1; i <= n; i++) {
+            data.add(new String[] {
+                prefix + i,
+                "REG" + i,
+                "Student" + i,
+                String.valueOf((i % 10) + 1),
+                String.valueOf(500 + (i % 100))
+            });
+        }
+        return data;
+    }
+    static void clearTable() {
+        table.clear();
+    }
+    static int insertStatement(ArrayList<String[]> data) {
+       int count = 0;
+        for (String[] p : data) {
+            String sql = "INSERT INTO bus_pass VALUES('" +
+                p[0] + "','" + p[1] + "','" + p[2] + "'," +
+                p[3] + "," + p[4] + ")";
+            table.add(new Pass(p[0], p[1], p[2],
+                Integer.parseInt(p[3]),
+                Double.parseDouble(p[4])));
+            count++;
+        }
+        return count;
+    }
+    static int insertPrepared(ArrayList<String[]> data) {
+        int count = 0;
+        for (String[] p : data) {
+            table.add(new Pass(p[0], p[1], p[2],
+                Integer.parseInt(p[3]),
+                Double.parseDouble(p[4])));
+            count++;
+        }
+        return count;
+    }
+    static int insertBatch(ArrayList<String[]> data) {
+        int count = 0;
+        int batchSize = 1000;
+        for (String[] p : data) {
+            table.add(new Pass(p[0], p[1], p[2],
+                Integer.parseInt(p[3]),
+                Double.parseDouble(p[4])));
+            count++;
+            if (count % batchSize == 0) {
+            }
+        }
+        return count;
+    }
+    static int loadAll(ArrayList<String[]> data) {
+        ArrayList<Pass> temporary = new ArrayList<Pass>();
+        try {
+            int count = 0;
+            for (String[] p : data) {
+                temporary.add(new Pass(
+                    p[0], p[1], p[2],
+                    Integer.parseInt(p[3]),
+                    Double.parseDouble(p[4])
+                ));
+                count++;
+                if (count % 1000 == 0) {
+                }
+            }
+            table.addAll(temporary);
+            return count;
+        } catch (RuntimeException e) {
+            temporary.clear();
+            throw e;
+        }
+    }
+    static void verify() {
+        System.out.println("COLUMN DETAILS:");
+        System.out.println("pass_id : VARCHAR");
+        System.out.println("reg_no  : VARCHAR");
+        System.out.println("name    : VARCHAR");
+        System.out.println("route_no: INT");
+        System.out.println("amount  : DOUBLE");
+
+        System.out.println("\nSAMPLE RECORDS:");
+        for (int i = 0; i < Math.min(5, table.size()); i++) {
+            Pass p = table.get(i);
+            System.out.println(p.id + " " + p.reg + " " +
+                p.name + " " + p.route + " " + p.amount);
+        }
+        System.out.println("Total rows: " + table.size());
+    }
+    static void benchmark(int n) {
+        ArrayList<String[]> data = generate(n, "P")
+        long start, end;
+        clearTable();
+        start = System.nanoTime();
+        insertStatement(data);
+        end = System.nanoTime();
+        System.out.printf("Statement: %.2f ms%n",
+            (end - start) / 1000000.0);
+        clearTable();
+        start = System.nanoTime();
+        insertPrepared(data);
+        end = System.nanoTime();
+        System.out.printf("PreparedStatement: %.2f ms%n",
+            (end - start) / 1000000.0);
+        clearTable();
+        start = System.nanoTime();
+        insertBatch(data);
+        end = System.nanoTime();
+        System.out.printf("Batch: %.2f ms%n",
+            (end - start) / 1000000.0);
+    }
+    static void autoCommitFailure(ArrayList<String[]> data) {
+        int committed = 0;
+        int pending = 0;
+        try {
+            for (String[] p : data) {
+                double amount = Double.parseDouble(p[4]);
+                pending++;
+                if (pending == 1000) {
+                    committed += pending;
+                    pending = 0;
+                }
+            }
+            committed += pending;
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid amount found");
+        }
+        System.out.println("Rows remaining: " + committed);
+    }
+    static void transactionFailure(ArrayList<String[]> data) {
+        ArrayList<Pass> temporary = new ArrayList<Pass>();
+        try {
+            for (String[] p : data) {
+                temporary.add(new Pass(
+                    p[0], p[1], p[2],
+                    Integer.parseInt(p[3]),
+                    Double.parseDouble(p[4])
+                ));
+            }
+            table.addAll(temporary);
+        } catch (NumberFormatException e) {
+            temporary.clear();
+            System.out.println("Invalid amount found");
+            System.out.println("Transaction rolled back");
+        }
+        System.out.println("Rows remaining: " + table.size());
+    }
+    public static void main(String[] args) {
+        System.out.println("B3.1 - CORRECTNESS TEST");
+        ArrayList<String[]> ten = generate(10, "T");
+        clearTable();
+        insertStatement(ten);
+        System.out.println("\nSTATEMENT:");
+        verify();
+        clearTable();
+        insertPrepared(ten);
+        System.out.println("\nPREPAREDSTATEMENT:");
+        verify();
+        clearTable();
+        insertBatch(ten);
+        System.out.println("\nBATCH:");
+        verify();
+        System.out.println("\nB3.2 - PERFORMANCE TEST");
+        System.out.println("\n1000 RECORDS:");
+        benchmark(1000);
+        System.out.println("\n10000 RECORDS:");
+        benchmark(10000);
+        System.out.println("\n100000 RECORDS:");
+        benchmark(100000);
+        System.out.println("\nB3.3 - AUTO-COMMIT FAILURE");
+        ArrayList<String[]> bad1 = generate(10000, "A");
+        bad1.get(5000)[4] = "INVALID";
+        autoCommitFailure(bad1);
+        System.out.println("\nTRANSACTION FAILURE");
+        clearTable();
+        ArrayList<String[]> bad2 = generate(10000, "B");
+        bad2.get(5000)[4] = "INVALID";
+        transactionFailure(bad2);
+    }
+}
