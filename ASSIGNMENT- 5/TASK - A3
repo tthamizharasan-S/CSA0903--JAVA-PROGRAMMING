@@ -1,0 +1,87 @@
+import java.util.*;
+class Student {
+    int id;
+    String name;
+    String department;
+    Student(int id, String name, String department) {
+        this.id = id;
+        this.name = name;
+        this.department = department;
+    }
+    public String toString() {
+        return id + "  " + name + "  " + department;
+    }
+}
+interface Dao<T, K> {
+    void insert(T obj);
+    T findById(K id);
+    List<T> findAll();
+    void update(T obj);
+    void delete(K id);
+}
+class StudentDao implements Dao<Student, Integer> {
+    List<Student> students = new ArrayList<>();
+    public void insert(Student s) {
+        students.add(s);
+        System.out.println("Student inserted successfully.");
+    }
+    public Student findById(Integer id) {
+        for (Student s : students) {
+            if (s.id == id)
+                return s;
+        }
+        return null;
+    }
+   public List<Student> findAll() {
+        return students;
+    }
+    public void update(Student s) {
+        for (int i = 0; i < students.size(); i++) {
+            if (students.get(i).id == s.id) {
+                students.set(i, s);
+                System.out.println("Student updated successfully.");
+                return;
+            }
+        }
+        System.out.println("Student not found.");
+    }
+    public void delete(Integer id) {
+        Student s = findById(id);
+        if (s != null) {
+            students.remove(s);
+            System.out.println("Student deleted successfully.");
+        } else {
+            System.out.println("Student not found.");
+        }
+    }
+}
+public class Main {
+    public static void main(String[] args) {
+        StudentDao dao = new StudentDao();
+        dao.insert(new Student(101, "Arun", "CSE"));
+        dao.insert(new Student(102, "Priya", "IT"));
+        dao.insert(new Student(103, "Kumar", "ECE"));
+        System.out.println("\nSearch Student:");
+        Student s = dao.findById(101);
+        if (s != null)
+            System.out.println(s);
+        else
+            System.out.println("Student not found.");
+        System.out.println("\nAll Students:");
+        for (Student st : dao.findAll()) {
+            System.out.println(st);
+        }
+        System.out.println("\nUpdate Student:");
+        dao.update(new Student(102, "Priya", "CSE"));
+        System.out.println("\nAfter Update:");
+        for (Student st : dao.findAll()) {
+            System.out.println(st);
+        }
+        System.out.println("\nDelete Student:");
+        dao.delete(103);
+        System.out.println("\nFinal Student Records:");
+        for (Student st : dao.findAll()) {
+            System.out.println(st);
+        }
+    }
+}
