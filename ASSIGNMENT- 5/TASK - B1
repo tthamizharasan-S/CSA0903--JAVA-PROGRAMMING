@@ -1,0 +1,163 @@
+import java.io.*;
+import java.nio.file.*;
+import java.util.*;
+public class Main {
+    static class PassStore {
+        private final Path file;
+        PassStore(Path file) {
+            this.file = file;
+        }
+        public void add(String passId, String regNo,
+                        String name, int route, double amount)
+                        throws IOException {
+            try (BufferedWriter w = Files.newBufferedWriter(
+                    file,
+                    StandardOpenOption.CREATE,
+                    StandardOpenOption.APPEND)) {
+                w.write(String.join(",",
+                    passId, regNo, name,
+                    String.valueOf(route),
+                    String.valueOf(amount)));
+
+                w.newLine();
+            }
+        }
+        public String[] find(String passId) throws IOException {
+            try (BufferedReader br = Files.newBufferedReader(file)) {
+                String line;
+                while ((line = br.readLine()) != null) {
+                    String[] fields = line.split(",", -1);
+                    if (fields.length != 5) {
+                        continue;
+                    }
+                    if (fields[0].equals(passId)) {
+                        return fields;
+                    }
+                }
+            }
+
+            return null;
+        }
+        public void list(int route) throws IOException {
+            try (BufferedReader br = Files.newBufferedReader(file)) {
+                String line;
+                boolean found = false;
+                System.out.println("\nPasses for Route " + route);
+                while ((line = br.readLine()) != null) {
+                    String[] fields = line.split(",", -1);
+                    if (fields.length != 5)
+                       continue;
+                    if (fields[3].equals(String.valueOf(route))) {
+                        System.out.println(Arrays.toString(fields));
+                        found = true;
+                    }
+                
+                if (!found)
+                    System.out.println("No passes found.");
+            }
+        }
+    }
+    static long unbufferedCount(Path file) throws IOException {
+        long lines = 0;
+        int data;
+        try (FileInputStream in =
+                 new FileInputStream(file.toFile())) {
+            while ((data = in.read()) != -1) {
+                if (data == '\n')
+                    lines++;
+            }
+        }
+        return lines;
+    }
+    static long bufferedCount(Path file) throws IOException {
+        long lines = 0;
+        int data;
+        try (BufferedInputStream in =
+                 new BufferedInputStream(
+                     new FileInputStream(file.toFile()), 8192)) {
+            while ((data = in.read()) != -1) {
+                if (data == '\n')
+                    lines++;
+            }
+        
+        return lines;
+    }
+    static Path createTestFile(int sizeMB) throws IOException {
+        Path file = Files.createTempFile("attendance", ".txt");
+        byte[] record = "Student Present\n".getBytes();
+        long targetSize = sizeMB * 1024L * 1024L;
+        try (OutputStream out = new BufferedOutputStream(
+                Files.newOutputStream(file))) {
+            long written = 0;
+            while (written + record.length <= targetSize) {
+                out.write(record);
+                written += record.length;
+            }
+        }
+        return file;
+    }
+    static void measureSearch(int count) throws IOException {
+        Path file = Files.createTempFile("search", ".csv");
+        PassStore store = new PassStore(file);
+        try (BufferedWriter w = Files.newBufferedWriter(file)) {
+            for (int i = 1; i <= count; i++) {
+                w.write("P" + i + ",REG" + i +
+                        ",Student" + i + ",12,4500.0");
+                w.newLine();
+            }
+        }
+        String target = "P" + count;
+        long start = System.nanoTime();
+        String[] result = store.find(target);
+        long end = System.nanoTime();
+        double time = (end - start) / 1_000_000.0;
+        System.out.printf("%-12d %-15.4f %s%n",
+                count, time,
+                result != null ? "Found" : "Not Found");
+        Files.deleteIfExists(file);
+    }
+    public static void main(String[] args) throws IOException {
+        Path f = Files.createTempFile("passes", ".csv");
+        PassStore store = new PassStore(f);
+        store.add("P1001", "192311001", "Arun", 12, 4500);
+        Files.writeString(f, "P1002,DAMAGEDLINE\n",
+                StandardOpenOption.APPEND);
+        store.add("P1003", "192311003", "Divya", 7, 3800);
+        System.out.println("===== PASS STORE TEST =====");
+        System.out.println("Find P1003: " +
+                Arrays.toString(store.find("P1003")));
+        System.out.println("Find P1002: " +
+                Arrays.toString(store.find("P1002")));
+        System.out.println("Find P9999: " +
+                Arrays.toString(store.find("P9999")));
+        store.list(12);
+        Files.deleteIfExists(f);
+        System.out.println("\n===== BUFFERING PERFORMANCE =====");
+        System.out.printf("%-12s %-18s %-18s%n",
+                "File Size", "Unbuffered (ms)", "Buffered (ms)");
+        for (int size : new int[]{1, 10, 50}) {
+            Path testFile = createTestFile(size);
+            long start = System.nanoTime();
+            long count1 = unbufferedCount(testFile);
+            long end = System.nanoTime();
+            double unbufferedTime = (end - start) / 1_000_000.0;
+            start = System.nanoTime();
+            long count2 = bufferedCount(testFile);
+            end = System.nanoTime();
+            double bufferedTime = (end - start) / 1_000_000.0;
+
+            System.out.printf("%-12d %-18.3f %-18.3f%n",
+                    size, unbufferedTime, bufferedTime);
+            if (count1 != count2)
+                System.out.println("Count mismatch!");
+            Files.deleteIfExists(testFile);
+        }
+        System.out.println("\n===== SEARCH TIME GROWTH =====");
+        System.out.printf("%-12s %-15s %s%n",
+                "Records", "Time (ms)", "Result");
+        for (int n : new int[]{1000, 10000, 50000, 100000}) {
+            measureSearch(n);
+        }
+        System.out.println("\nAll tests completed successfully.");
+    }
+}
